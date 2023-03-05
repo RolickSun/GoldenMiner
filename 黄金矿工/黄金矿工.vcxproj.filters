@@ -24,4 +24,87 @@
       <Filter>源文件</Filter>
     </ClCompile>
   </ItemGroup>
+  <ItemGroup>
+    <Image Include="Resources\pictures\bakudan.bmp">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="Resources\pictures\bakudan_mask.bmp">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="Resources\pictures\barrel.png">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="Resources\pictures\barrel_mask.png">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="Resources\pictures\big_gold.png">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="Resources\pictures\big_gold_mask.png">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="Resources\pictures\brick.png">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="Resources\pictures\char1.jpg">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="Resources\pictures\char1_mask.jpg">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="Resources\pictures\char2.jpg">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="Resources\pictures\char2_mask.jpg">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="Resources\pictures\clear.png">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="Resources\pictures\diamond.png">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="Resources\pictures\diamond_mask.png">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="Resources\pictures\end.jpg">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="Resources\pictures\hook.bmp">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="Resources\pictures\hook_mask.bmp">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="Resources\pictures\level-background-0.jpg">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="Resources\pictures\level-background-1.jpg">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="Resources\pictures\shop.png">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="Resources\pictures\small_gold.bmp">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="Resources\pictures\small_gold_mask.bmp">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="Resources\pictures\small_stone.jpg">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="Resources\pictures\small_stone_mask.jpg">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="Resources\pictures\start.png">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="Resources\pictures\startbottom1.png">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="Resources\pictures\startbottom2.png">
+      <Filter>资源文件</Filter>
+    </Image>
+  </ItemGroup>
 </Project>

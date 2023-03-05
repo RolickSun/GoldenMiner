@@ -1,24 +1,38 @@
 #include "game.h"
 
-GameState gameState;
-IMAGE back;
-IMAGE player[2];
-IMAGE m_player[2];
-MOUSEMSG m; //设置鼠标信息
+IMAGE i_back;
+IMAGE i_player[2];
+IMAGE i_mplayer[2];
+IMAGE i_hook;
+IMAGE i_mhook;
+IMAGE i_hook2;
+IMAGE i_mhook2;
 
+GameState gameState;
+MOUSEMSG m; //设置鼠标信息
+Hook hook;
+Player player;
+
+//加载图片
 void LoadImages() {
-	loadimage(&back, _T("E:\\PG files\\pictures\\level-background-0.jpg"));
-	loadimage(&player[0], _T("E:\\PG files\\pictures\\char1.jpg"));
-	loadimage(&player[1], _T("E:\\PG files\\pictures\\char2.jpg"));
-	loadimage(&m_player[0], _T("E:\\PG files\\pictures\\char1_mask.jpg"));
-	loadimage(&m_player[1], _T("E:\\PG files\\pictures\\char2_mask.jpg"));
+	loadimage(&i_back, _T(".\\Resources\\pictures\\level-background-0.jpg"));
+	loadimage(&i_player[0], _T(".\\Resources\\pictures\\char1.jpg"));
+	loadimage(&i_player[1], _T(".\\Resources\\pictures\\char2.jpg"));
+	loadimage(&i_mplayer[0], _T(".\\Resources\\pictures\\char1_mask.jpg"));
+	loadimage(&i_mplayer[1], _T(".\\Resources\\pictures\\char2_mask.jpg"));
+	loadimage(&i_hook, _T(".\\Resources\\pictures\\hook.bmp"));
+	loadimage(&i_mhook, _T(".\\Resources\\pictures\\hook_mask.bmp"));
+	i_hook2 = i_hook;
+	i_mhook2 = i_mhook;
 }
 
+//利用蒙版图层打印透明背景图片
 void PutImageWithMask(int PosX, int PosY, IMAGE* pImg, IMAGE* pImgMask) {
 	putimage(PosX, PosY, pImgMask, NOTSRCERASE);
 	putimage(PosX, PosY, pImg, SRCINVERT);
 }
 
+//获取键盘事件
 void GetKeyboard() {
 	if (GetAsyncKeyState(27) & 0x8000) {	//ESC
 		gameState = GameOver;
@@ -28,19 +42,13 @@ void GetKeyboard() {
 	}
 }
 
+//获取鼠标事件
 void MouseEvent() {
-	char ch[20];//字符临时变量
-	if (MouseHit()) {
-		m = GetMouseMsg();
-	}
 	switch (m.uMsg)//对事件进行分类
 	{
 	case WM_MOUSEMOVE://如果是鼠标移动事件
-		sprintf_s(ch, "x:%d y:%d   ", m.x, m.y);//将坐标输入到ch
-		//outtextxy(100, 100, ch);//将字符串ch输出到(100,100)
 		break;
 	case WM_LBUTTONDOWN://如果是点击鼠标左键，在点击位置出现数组ch中的坐标
-		//outtextxy(m.x, m.y, ch);
 		break;
 	case WM_RBUTTONDOWN://如果是点击鼠标右键
 		return;//退出
@@ -48,16 +56,72 @@ void MouseEvent() {
 
 }
 
+//游戏对象初始化
+void Initialize() {
+	gameState = Running;
+	m = GetMouseMsg();
+
+	player.x = WINDOWS_WIDTH / 2 - 50;
+	player.y = WINDOWS_HEIGHT / 2 - 240;
+	player.score = 0;
+
+	hook.x = player.x+20;
+	hook.y = player.y+60;
+	hook.length = 0;
+	hook.angle = 0;
+	hook.dir = 0;
+	hook.speed = 5;
+}
+
+//绘制钩子
+void DrawHook() {
+	hook.endx = hook.x + hook.length * sin(hook.angle);
+	hook.endy = hook.y + hook.length * cos(hook.angle);
+	setlinecolor(LIGHTCYAN);
+	line(hook.x+18, hook.y, hook.endx+18, hook.endy);
+	PutImageWithMask(hook.x, hook.y, &i_hook2, &i_mhook2);
+}
+
+//钩子旋转
+void HookSway() {
+	if (hook.angle >= 90) {
+		hook.dir = 0;
+	}
+	if (hook.angle <= -90) {
+		hook.dir = 1;
+	}
+	switch (hook.dir)
+	{
+	case 0:
+		hook.angle--;
+		break;
+	case 1:
+		hook.angle++;
+		break;
+	default:
+		break;
+	}
+	setbkmode(TRANSPARENT);
+	rotateimage(&i_hook2, &i_hook, hook.angle * 3.14 / 180, 0UL, true, true);
+	rotateimage(&i_mhook2, &i_mhook, hook.angle * 3.14 / 180, 0UL, true, true);
+}
+
 void Start() {
 	initgraph(WINDOWS_WIDTH, WINDOWS_HEIGHT);
-	gameState = Running;
 	LoadImages();
-	m = GetMouseMsg();
+	Initialize();
 }
 
 void Update() {
-	putimage(0, 0, &back);
-	PutImageWithMask(WINDOWS_WIDTH / 2 - 50, WINDOWS_HEIGHT / 2 - 200, &player[0], &m_player[0]);
+	putimage(0, 0, &i_back);	//绘制背景
+	PutImageWithMask(player.x, player.y, &i_player[0], &i_mplayer[0]);	//绘制主角
+	DrawHook();
+	HookSway();
+	GetKeyboard();
+	if (MouseHit()) {
+		m = GetMouseMsg();
+		MouseEvent();
+	}
 }
 
 

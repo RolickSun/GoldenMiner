@@ -132,6 +132,35 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
   </ItemGroup>
+  <ItemGroup>
+    <Image Include="Resources\pictures\bakudan.bmp" />
+    <Image Include="Resources\pictures\bakudan_mask.bmp" />
+    <Image Include="Resources\pictures\barrel.png" />
+    <Image Include="Resources\pictures\barrel_mask.png" />
+    <Image Include="Resources\pictures\big_gold.png" />
+    <Image Include="Resources\pictures\big_gold_mask.png" />
+    <Image Include="Resources\pictures\brick.png" />
+    <Image Include="Resources\pictures\char1.jpg" />
+    <Image Include="Resources\pictures\char1_mask.jpg" />
+    <Image Include="Resources\pictures\char2.jpg" />
+    <Image Include="Resources\pictures\char2_mask.jpg" />
+    <Image Include="Resources\pictures\clear.png" />
+    <Image Include="Resources\pictures\diamond.png" />
+    <Image Include="Resources\pictures\diamond_mask.png" />
+    <Image Include="Resources\pictures\end.jpg" />
+    <Image Include="Resources\pictures\hook.bmp" />
+    <Image Include="Resources\pictures\hook_mask.bmp" />
+    <Image Include="Resources\pictures\level-background-0.jpg" />
+    <Image Include="Resources\pictures\level-background-1.jpg" />
+    <Image Include="Resources\pictures\shop.png" />
+    <Image Include="Resources\pictures\small_gold.bmp" />
+    <Image Include="Resources\pictures\small_gold_mask.bmp" />
+    <Image Include="Resources\pictures\small_stone.jpg" />
+    <Image Include="Resources\pictures\small_stone_mask.jpg" />
+    <Image Include="Resources\pictures\start.png" />
+    <Image Include="Resources\pictures\startbottom1.png" />
+    <Image Include="Resources\pictures\startbottom2.png" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
