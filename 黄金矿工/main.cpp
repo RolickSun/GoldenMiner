@@ -101,9 +101,8 @@ void HookSway() {
 	default:
 		break;
 	}
-	setbkmode(TRANSPARENT);
-	rotateimage(&i_hook2, &i_hook, hook.angle * 3.14 / 180, 0UL, true, true);
-	rotateimage(&i_mhook2, &i_mhook, hook.angle * 3.14 / 180, 0UL, true, true);
+	rotateimage(&i_hook2, &i_hook, hook.angle * 3.14 / 180, WHITE, true, true);
+	rotateimage(&i_mhook2, &i_mhook, hook.angle * 3.14 / 180, BLACK, true, true);
 }
 
 void Start() {
