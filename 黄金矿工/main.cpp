@@ -38,7 +38,9 @@ void GetKeyboard() {
 		gameState = GameOver;
 	}
 	if (GetAsyncKeyState(VK_DOWN) & 0x8000) {
-
+		if (hook.isThrow)	//如果钩子已经投出，则不再监视
+			return;
+		ThrowHook();
 	}
 }
 
@@ -48,7 +50,10 @@ void MouseEvent() {
 	{
 	case WM_MOUSEMOVE://如果是鼠标移动事件
 		break;
-	case WM_LBUTTONDOWN://如果是点击鼠标左键，在点击位置出现数组ch中的坐标
+	case WM_LBUTTONDOWN://如果是点击鼠标左键
+		if (hook.isThrow)	//如果钩子已经投出，则不再监视
+			return;
+		ThrowHook();
 		break;
 	case WM_RBUTTONDOWN://如果是点击鼠标右键
 		return;//退出
@@ -71,19 +76,35 @@ void Initialize() {
 	hook.angle = 0;
 	hook.dir = 0;
 	hook.speed = 5;
+	hook.isThrow = false;
+	//hook.dx = 0;
+	//hook.dy = 0;
 }
 
 //绘制钩子
 void DrawHook() {
-	hook.endx = hook.x + hook.length * sin(hook.angle);
-	hook.endy = hook.y + hook.length * cos(hook.angle);
+	hook.endx = hook.x + hook.length * sin(hook.angle*3.14/180);
+	hook.endy = hook.y + hook.length * cos(hook.angle*3.14/180);
 	setlinecolor(LIGHTCYAN);
 	line(hook.x+18, hook.y, hook.endx+18, hook.endy);
-	PutImageWithMask(hook.x, hook.y, &i_hook2, &i_mhook2);
+	PutImageWithMask(hook.endx, hook.endy, &i_hook2, &i_mhook2);
+	if (hook.isThrow) {
+		if (hook.isBack)
+			HookBack(2 * hook.speed);
+		else
+			ThrowHook();
+		if (hook.endx > WINDOWS_WIDTH || hook.endy > WINDOWS_HEIGHT) {
+			hook.isBack = true;
+		}
+	}
 }
 
 //钩子旋转
 void HookSway() {
+	if (hook.isThrow) {	//如果扔出钩子，则返回
+		return;
+	}
+
 	if (hook.angle >= 90) {
 		hook.dir = 0;
 	}
@@ -103,6 +124,29 @@ void HookSway() {
 	}
 	rotateimage(&i_hook2, &i_hook, hook.angle * 3.14 / 180, WHITE, true, true);
 	rotateimage(&i_mhook2, &i_mhook, hook.angle * 3.14 / 180, BLACK, true, true);
+
+	//hook.dx = -18 * cos(hook.angle * 3.14 / 180) + 18;
+	//hook.dy = 18 * sin(hook.angle*3.14/180);
+	//if (hook.angle <= 0) {
+	//	hook.dx = -1 * hook.dx;
+	//	hook.dy = -1 * hook.dy;
+	//}
+}
+
+//投掷钩子
+void ThrowHook() {
+	hook.isThrow = true;
+	hook.isBack = false;
+	hook.length += hook.speed;
+}
+
+//收回钩子
+void HookBack(int speed) {
+	hook.length -= speed;
+	if (hook.length <= 0) {
+		hook.length = 0;
+		hook.isThrow = false;
+	}
 }
 
 void Start() {
@@ -114,8 +158,10 @@ void Start() {
 void Update() {
 	putimage(0, 0, &i_back);	//绘制背景
 	PutImageWithMask(player.x, player.y, &i_player[0], &i_mplayer[0]);	//绘制主角
-	DrawHook();
-	HookSway();
+
+	DrawHook();	//绘制钩子
+	HookSway();	//钩子摆动
+
 	GetKeyboard();
 	if (MouseHit()) {
 		m = GetMouseMsg();
