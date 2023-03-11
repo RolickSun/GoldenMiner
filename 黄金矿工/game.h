@@ -4,11 +4,15 @@
 #include <conio.h>
 #include <stdio.h>
 #include <math.h>
+#include <time.h>
 
 #pragma comment(lib,"msimg32.lib")
 
 #define WINDOWS_WIDTH 960
 #define WINDOWS_HEIGHT 540
+#define BIG_GOLD_AMOUNT 3
+#define SMALL_GOLD_AMOUNT 5
+#define DIAMOND_AMOUNT 3
 
 enum GameState
 {
@@ -38,8 +42,28 @@ typedef struct
 	int x;
 	int y;
 	int score;
+	int timer;	//动画计时器
+	int index;	//动画图片索引
 } Player;
 
+typedef struct
+{
+	int x;
+	int y;
+	int size;
+	int score;
+	IMAGE* image;
+	IMAGE* m_image;
+} Object;
+
+typedef struct _node {
+	Object object;
+	struct _node* next;
+} Node;
+
+typedef struct _list {
+	Node* head;
+} List;
 
 void HookSway();
 void DrawHook();
