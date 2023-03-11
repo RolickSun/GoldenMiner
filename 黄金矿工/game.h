@@ -66,9 +66,19 @@ typedef struct _list {
 	Node* head;
 } List;
 
-void HookSway();
+void Add(List* pList, Object obj);
+void Delete(List* pList, int index);
+Object* Find(List* pList, int index);
+void LoadImages();
+void PutImageWithMask(int PosX, int PosY, IMAGE* pImg, IMAGE* pImgMask);
+void GetKeyboard();
+void MouseEvent();
+void Initialize();
+void DrawPlayer();
+void DrawObject();
 void DrawHook();
+void HookSway();
 void ThrowHook();
 void HookBack(int speed);
-void HookBack(int speed, Object* obj);
+void HookBack(int speed, int index);
 bool CollisionDetect(Object obj);

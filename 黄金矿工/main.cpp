@@ -40,6 +40,40 @@ void Add(List* pList, Object obj) {
 	}
 }
 
+//链表删除
+void Delete(List* pList, int index) {
+	Node* p, * q;
+	int i = 0;
+	for (p = pList->head, q = NULL; p; q = p, p = p->next) {
+		if (i==index) {
+			if (q) {
+				q->next = p->next;	//q的后位等于p的后位，就是把p从链表上忽略掉
+			}
+			else {	//如果首位就是应删去的值
+				pList->head = p->next;	//链表头为p的后位
+			}
+			free(p);
+			break;
+		}
+		i++;
+	}
+
+}
+
+//通过索引找对象
+Object* Find(List* pList, int index) {
+	Node* p;
+	Object *obj;
+	int i = 0;
+	for (p = list.head; p; p = p->next) {
+		if (i == index) {
+			obj = &(p->object);
+			return obj;
+		}
+		i++;
+	}
+	return NULL;
+}
 
 //加载图片
 void LoadImages() {
@@ -122,7 +156,7 @@ void Initialize() {
 	for (int i = 0; i < BIG_GOLD_AMOUNT; i++) {
 		Object bigGold;
 		bigGold.x = rand() % WINDOWS_WIDTH;
-		bigGold.y = rand() % WINDOWS_HEIGHT;
+		bigGold.y = rand() % (WINDOWS_HEIGHT - 60) + 60;
 		bigGold.image = &i_biggold;
 		bigGold.m_image = &i_mbiggold;
 		bigGold.size = rand() % 3 + 6;	//范围6-8
@@ -132,7 +166,7 @@ void Initialize() {
 	for (int i = 0; i < SMALL_GOLD_AMOUNT; i++) {
 		Object smallGold;
 		smallGold.x = rand() % WINDOWS_WIDTH;
-		smallGold.y = rand() % WINDOWS_HEIGHT;
+		smallGold.y = rand() % (WINDOWS_HEIGHT - 60) + 60;
 		smallGold.image = &i_smallgold;
 		smallGold.m_image = &i_msmallgold;
 		smallGold.size = rand() % 3 + 1;	//范围1-3
@@ -142,10 +176,10 @@ void Initialize() {
 	for (int i = 0; i < DIAMOND_AMOUNT; i++) {
 		Object diamond;
 		diamond.x = rand() % WINDOWS_WIDTH;
-		diamond.y = rand() % WINDOWS_HEIGHT;
+		diamond.y = rand() % (WINDOWS_HEIGHT - 60) + 60;
 		diamond.image = &i_diamond;
 		diamond.m_image = &i_mdiamond;
-		diamond.size = rand() % 3 + 1;	//范围1-3
+		diamond.size = 2;
 		diamond.score = 100 * diamond.size;
 		Add(&list, diamond);
 	}
@@ -171,8 +205,8 @@ void DrawObject() {
 	Node* p;
 	for (p = list.head; p; p = p->next) {
 		PutImageWithMask(p->object.x, p->object.y, p->object.image, p->object.m_image);
-		setlinecolor(GREEN);
-		rectangle(p->object.x, p->object.y, p->object.x + p->object.image->getwidth(),p->object.y+ p->object.image->getheight());
+		//setlinecolor(GREEN);
+		//rectangle(p->object.x, p->object.y, p->object.x + p->object.image->getwidth(),p->object.y+ p->object.image->getheight());
 	}
 }
 
@@ -186,7 +220,7 @@ void DrawHook() {
 
 	//如果钩子被投出
 	if (hook.isThrow) {
-		Object obj;
+		int index=0;
 		//检测碰撞到墙壁
 		if (hook.endx > WINDOWS_WIDTH || hook.endy > WINDOWS_HEIGHT || hook.endx < 0) {
 			hook.isBack = true;
@@ -196,21 +230,22 @@ void DrawHook() {
 		for (p = list.head; p; p = p->next) {
 			if (CollisionDetect(p->object)) {
 				hook.isBack = true;
-				obj = p->object;
 				hook.carry = p->object.size;
+				break;
 			}
+			index++;
 		}
 
 		if (hook.isBack)
 			if (hook.carry == 0)	//没有负载，证明没有抓到物品
 				HookBack(2 * hook.speed);
 			else
-				HookBack(2 * hook.speed - hook.carry, &obj);	//抓到了物品
+				HookBack(2 * hook.speed - hook.carry , index);	//抓到了物品
 		else
 			ThrowHook();
 
 	}
-	rectangle(hook.endx - hook.dx, hook.endy-hook.dy, hook.endx -hook.dx+ i_hook2.getwidth(), hook.endy-hook.dy + i_hook2.getheight());
+	//rectangle(hook.endx - hook.dx, hook.endy-hook.dy, hook.endx -hook.dx+ i_hook2.getwidth(), hook.endy-hook.dy + i_hook2.getheight());
 }
 
 //钩子旋转
@@ -266,13 +301,18 @@ void HookBack(int speed) {
 }
 
 //收回钩子与对象
-void HookBack(int speed, Object* obj) {
+void HookBack(int speed, int index) {
 	hook.length -= speed;
-	obj->x = hook.endx - hook.dx;
-	obj->y = hook.endy - hook.dy;
+	Object* obj = Find(&list, index);
+	if (obj != NULL) {
+		obj->x = hook.endx - hook.dx;
+		obj->y = hook.endy - hook.dy;
+	}
 	if (hook.length <= 0) {
 		hook.length = 0;
 		hook.carry = 0;
+		player.score += obj->score;
+		Delete(&list, index);
 		hook.isThrow = false;
 	}
 }
