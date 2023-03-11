@@ -114,8 +114,9 @@ void Initialize() {
 	hook.dir = 0;
 	hook.speed = 5;
 	hook.isThrow = false;
-	//hook.dx = 0;
-	//hook.dy = 0;
+	hook.dx = 18;
+	hook.dy = 0;
+	hook.carry = 0;
 
 	list.head = NULL;
 	for (int i = 0; i < BIG_GOLD_AMOUNT; i++) {
@@ -124,7 +125,7 @@ void Initialize() {
 		bigGold.y = rand() % WINDOWS_HEIGHT;
 		bigGold.image = &i_biggold;
 		bigGold.m_image = &i_mbiggold;
-		bigGold.size = rand() % 10 + 10;
+		bigGold.size = rand() % 3 + 6;	//范围6-8
 		bigGold.score = 20 * bigGold.size;
 		Add(&list, bigGold);
 	}
@@ -134,7 +135,7 @@ void Initialize() {
 		smallGold.y = rand() % WINDOWS_HEIGHT;
 		smallGold.image = &i_smallgold;
 		smallGold.m_image = &i_msmallgold;
-		smallGold.size = rand() % 5;
+		smallGold.size = rand() % 3 + 1;	//范围1-3
 		smallGold.score = 10 * smallGold.size;
 		Add(&list, smallGold);
 	}
@@ -144,7 +145,7 @@ void Initialize() {
 		diamond.y = rand() % WINDOWS_HEIGHT;
 		diamond.image = &i_diamond;
 		diamond.m_image = &i_mdiamond;
-		diamond.size = rand() % 5;
+		diamond.size = rand() % 3 + 1;	//范围1-3
 		diamond.score = 100 * diamond.size;
 		Add(&list, diamond);
 	}
@@ -180,18 +181,36 @@ void DrawHook() {
 	hook.endx = hook.x + hook.length * sin(hook.angle*3.14/180);
 	hook.endy = hook.y + hook.length * cos(hook.angle*3.14/180);
 	setlinecolor(LIGHTCYAN);
-	line(hook.x+18, hook.y, hook.endx+18, hook.endy);
-	PutImageWithMask(hook.endx, hook.endy, &i_hook2, &i_mhook2);
+	line(hook.x, hook.y, hook.endx, hook.endy);
+	PutImageWithMask(hook.endx-hook.dx, hook.endy-hook.dy, &i_hook2, &i_mhook2);
+
+	//如果钩子被投出
 	if (hook.isThrow) {
-		if (hook.isBack)
-			HookBack(2 * hook.speed);
-		else
-			ThrowHook();
+		Object obj;
+		//检测碰撞到墙壁
 		if (hook.endx > WINDOWS_WIDTH || hook.endy > WINDOWS_HEIGHT || hook.endx < 0) {
 			hook.isBack = true;
 		}
+		//检测碰撞到物体
+		Node* p;
+		for (p = list.head; p; p = p->next) {
+			if (CollisionDetect(p->object)) {
+				hook.isBack = true;
+				obj = p->object;
+				hook.carry = p->object.size;
+			}
+		}
+
+		if (hook.isBack)
+			if (hook.carry == 0)	//没有负载，证明没有抓到物品
+				HookBack(2 * hook.speed);
+			else
+				HookBack(2 * hook.speed - hook.carry, &obj);	//抓到了物品
+		else
+			ThrowHook();
+
 	}
-	rectangle(hook.endx, hook.endy, hook.endx + i_hook2.getwidth(), hook.endy + i_hook2.getheight());
+	rectangle(hook.endx - hook.dx, hook.endy-hook.dy, hook.endx -hook.dx+ i_hook2.getwidth(), hook.endy-hook.dy + i_hook2.getheight());
 }
 
 //钩子旋转
@@ -220,12 +239,14 @@ void HookSway() {
 	rotateimage(&i_hook2, &i_hook, hook.angle * 3.14 / 180, WHITE, true, true);
 	rotateimage(&i_mhook2, &i_mhook, hook.angle * 3.14 / 180, BLACK, true, true);
 
-	//hook.dx = -18 * cos(hook.angle * 3.14 / 180) + 18;
-	//hook.dy = 18 * sin(hook.angle*3.14/180);
-	//if (hook.angle <= 0) {
-	//	hook.dx = -1 * hook.dx;
-	//	hook.dy = -1 * hook.dy;
-	//}
+	if (hook.angle > 0) {
+		hook.dy = 18 * sin(hook.angle * 3.14 / 180);
+		hook.dx = 35 * cos(hook.angle * 3.14 / 180) - 18 * cos(hook.angle * 3.14 / 180);
+	}
+	else {
+		hook.dy = 18 * sin(abs(hook.angle) * 3.14 / 180);
+		hook.dx = 20 * sin(abs(hook.angle) * 3.14 / 180) + 18 * cos(abs(hook.angle) * 3.14 / 180);
+	}
 }
 
 //投掷钩子
@@ -244,26 +265,37 @@ void HookBack(int speed) {
 	}
 }
 
+//收回钩子与对象
+void HookBack(int speed, Object* obj) {
+	hook.length -= speed;
+	obj->x = hook.endx - hook.dx;
+	obj->y = hook.endy - hook.dy;
+	if (hook.length <= 0) {
+		hook.length = 0;
+		hook.carry = 0;
+		hook.isThrow = false;
+	}
+}
+
 //碰撞检测
-Object CollisionDetect(Object obj) {
-	int rect1x = hook.endx;
-	int rect1y = hook.endy;
-	int rect1width = hook.endx + i_hook2.getwidth();
-	int rect1height = hook.endy + i_hook2.getheight();
+bool CollisionDetect(Object obj) {
+	int rect1x = hook.endx-hook.dx;
+	int rect1y = hook.endy-hook.dy;
+	int rect1width = i_hook2.getwidth();
+	int rect1height = i_hook2.getheight();
 	int rect2x = obj.x;
 	int rect2y = obj.y;
-	int rect2width = obj.x + obj.image->getwidth();
-	int rect2height = obj.y + obj.image->getheight();
-	if (rect1x < rect2x + rect2width &&
-		rect1x + rect1width > rect2x &&
-		rect1y < rect2y + rect2height &&
-		rect1height + rect1y > rect2y)
+	int rect2width = obj.image->getwidth();
+	int rect2height = obj.image->getheight();
+
+	if ((rect1x+rect1width)>=rect2x &&
+		(rect2x+rect2width)>=rect1x &&
+		(rect1y+rect1height)>=rect2y &&
+		(rect2y+rect2height)>=rect1y)
 	{
-		return obj;
+		return true;
 	}
-	else {
-		return;
-	}
+	return false;
 }
 
 void Start() {

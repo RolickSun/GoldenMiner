@@ -33,8 +33,9 @@ typedef struct
 	int speed;	//钩子速度
 	bool isThrow;	//判断是否扔出钩子
 	bool isBack;	//判断是否收回钩子
-	//int dx;	//偏移量x
-	//int dy;	//偏移量y
+	int dx;	//偏移量x
+	int dy;	//偏移量y
+	int carry;	//负载
 } Hook;
 
 typedef struct
@@ -69,3 +70,5 @@ void HookSway();
 void DrawHook();
 void ThrowHook();
 void HookBack(int speed);
+void HookBack(int speed, Object* obj);
+bool CollisionDetect(Object obj);
