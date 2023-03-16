@@ -1,6 +1,7 @@
 #include "game.h"
 
 IMAGE i_back;
+IMAGE i_brick;
 IMAGE i_player[2];
 IMAGE i_mplayer[2];
 IMAGE i_hook;
@@ -78,6 +79,7 @@ Object* Find(List* pList, int index) {
 //加载图片
 void LoadImages() {
 	loadimage(&i_back, _T(".\\Resources\\pictures\\level-background-0.jpg"));
+	loadimage(&i_brick, _T(".\\Resources\\pictures\\brick.png"),WINDOWS_WIDTH+30,0,true);
 	loadimage(&i_player[0], _T(".\\Resources\\pictures\\char1.jpg"));
 	loadimage(&i_player[1], _T(".\\Resources\\pictures\\char2.jpg"));
 	loadimage(&i_mplayer[0], _T(".\\Resources\\pictures\\char1_mask.jpg"));
@@ -138,6 +140,7 @@ void Initialize() {
 	player.x = WINDOWS_WIDTH / 2 - 50;
 	player.y = WINDOWS_HEIGHT / 2 - 240;
 	player.score = 0;
+	player.goal = 300;
 	player.timer = 0;
 	player.index = 0;
 
@@ -156,31 +159,36 @@ void Initialize() {
 	for (int i = 0; i < BIG_GOLD_AMOUNT; i++) {
 		Object bigGold;
 		bigGold.x = rand() % WINDOWS_WIDTH;
-		bigGold.y = rand() % (WINDOWS_HEIGHT - 60) + 60;
+		bigGold.y = rand() % (WINDOWS_HEIGHT - 110) + 110;
 		bigGold.image = &i_biggold;
 		bigGold.m_image = &i_mbiggold;
 		bigGold.size = rand() % 3 + 6;	//范围6-8
-		bigGold.score = 20 * bigGold.size;
+		bigGold.score = 20 * bigGold.size;	//120-160
+		/*int scale = 10 * bigGold.size + 90;
+		int width = bigGold.image->getwidth();
+		int height = bigGold.image->getheight();
+		Resize(bigGold.image, width * 0.01 * scale, height * 0.01 * scale);
+		Resize(bigGold.m_image, width * 0.01 * scale, height * 0.01 * scale);*/
 		Add(&list, bigGold);
 	}
 	for (int i = 0; i < SMALL_GOLD_AMOUNT; i++) {
 		Object smallGold;
 		smallGold.x = rand() % WINDOWS_WIDTH;
-		smallGold.y = rand() % (WINDOWS_HEIGHT - 60) + 60;
+		smallGold.y = rand() % (WINDOWS_HEIGHT - 110) + 110;
 		smallGold.image = &i_smallgold;
 		smallGold.m_image = &i_msmallgold;
 		smallGold.size = rand() % 3 + 1;	//范围1-3
-		smallGold.score = 10 * smallGold.size;
+		smallGold.score = 20 * smallGold.size;	//20-60
 		Add(&list, smallGold);
 	}
 	for (int i = 0; i < DIAMOND_AMOUNT; i++) {
 		Object diamond;
 		diamond.x = rand() % WINDOWS_WIDTH;
-		diamond.y = rand() % (WINDOWS_HEIGHT - 60) + 60;
+		diamond.y = rand() % (WINDOWS_HEIGHT - 110) + 110;
 		diamond.image = &i_diamond;
 		diamond.m_image = &i_mdiamond;
-		diamond.size = 2;
-		diamond.score = 100 * diamond.size;
+		diamond.size = 1;
+		diamond.score = 200;
 		Add(&list, diamond);
 	}
 }
@@ -200,13 +208,40 @@ void DrawPlayer() {
 	}
 }
 
+//绘制背景
+void DrawBackground()
+{
+	putimage(0, 0, &i_back);
+	putimage(-10, 100, &i_brick);
+}
+
+//绘制UI
+void DrawUI() {
+	LOGFONT font;
+	gettextstyle(&font);
+	font.lfHeight = 32;	//指定字体高度48
+	font.lfQuality = ANTIALIASED_QUALITY;	//字体抗锯齿
+	_tcscpy_s(font.lfFaceName, L"黑体");
+	settextstyle(&font);
+	setbkmode(TRANSPARENT);
+
+	TCHAR scoreText[30];
+	_stprintf_s(scoreText, _T("分数：%d"), player.score);
+	outtextxy(0,0,scoreText);
+
+	TCHAR goalText[30];
+	_stprintf_s(goalText, _T("目标：%d"), player.goal);
+	outtextxy(0, 40, goalText);
+}
+
+
 //绘制游戏对象
 void DrawObject() {
 	Node* p;
 	for (p = list.head; p; p = p->next) {
 		PutImageWithMask(p->object.x, p->object.y, p->object.image, p->object.m_image);
-		//setlinecolor(GREEN);
-		//rectangle(p->object.x, p->object.y, p->object.x + p->object.image->getwidth(),p->object.y+ p->object.image->getheight());
+		setlinecolor(GREEN);
+		rectangle(p->object.x, p->object.y, p->object.x + p->object.image->getwidth(),p->object.y+ p->object.image->getheight());
 	}
 }
 
@@ -214,7 +249,8 @@ void DrawObject() {
 void DrawHook() {
 	hook.endx = hook.x + hook.length * sin(hook.angle*3.14/180);
 	hook.endy = hook.y + hook.length * cos(hook.angle*3.14/180);
-	setlinecolor(LIGHTCYAN);
+	setlinestyle(PS_SOLID, 2);
+	setlinecolor(DARKGRAY);
 	line(hook.x, hook.y, hook.endx, hook.endy);
 	PutImageWithMask(hook.endx-hook.dx, hook.endy-hook.dy, &i_hook2, &i_mhook2);
 
@@ -345,9 +381,10 @@ void Start() {
 }
 
 void Update() {
-	putimage(0, 0, &i_back);	//绘制背景
+	DrawBackground();
 	DrawPlayer();
 	DrawObject();
+	DrawUI();
 
 	DrawHook();	//绘制钩子
 	HookSway();	//钩子摆动

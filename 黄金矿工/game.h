@@ -42,7 +42,8 @@ typedef struct
 {
 	int x;
 	int y;
-	int score;
+	int score;	//分数
+	int goal;	//目标
 	int timer;	//动画计时器
 	int index;	//动画图片索引
 } Player;
@@ -75,6 +76,8 @@ void GetKeyboard();
 void MouseEvent();
 void Initialize();
 void DrawPlayer();
+void DrawBackground();
+void DrawUI();
 void DrawObject();
 void DrawHook();
 void HookSway();
