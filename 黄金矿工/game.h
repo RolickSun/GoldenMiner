@@ -17,7 +17,8 @@
 enum GameState
 {
 	Running,
-	Clear,
+	Pause,
+	Finished,
 };
 
 typedef struct 

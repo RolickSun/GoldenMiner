@@ -1,5 +1,7 @@
 #include "game.h"
 
+#pragma region Images
+
 IMAGE i_back;
 IMAGE i_brick;
 IMAGE i_player[2];
@@ -9,6 +11,7 @@ IMAGE i_mhook;
 IMAGE i_hook2;
 IMAGE i_mhook2;
 IMAGE i_clear;
+IMAGE i_end;
 
 IMAGE i_biggold;
 IMAGE i_mbiggold;
@@ -17,11 +20,15 @@ IMAGE i_msmallgold;
 IMAGE i_diamond;
 IMAGE i_mdiamond;
 
+#pragma endregion
+
 GameState gameState;
 MOUSEMSG m; //设置鼠标信息
 Hook hook;
 Player player;
 List list;	//链表用来储存游戏对象
+int Time = 30;
+int timer = 0;
 
 //链表添加
 void Add(List* pList, Object obj) {
@@ -94,6 +101,7 @@ void LoadImages() {
 	loadimage(&i_diamond, _T(".\\Resources\\pictures\\diamond.png"));
 	loadimage(&i_mdiamond, _T(".\\Resources\\pictures\\diamond_mask.png"));
 	loadimage(&i_clear, _T(".\\Resources\\pictures\\clear.png"));
+	loadimage(&i_end, _T(".\\Resources\\pictures\\end.jpg"));
 	i_hook2 = i_hook;
 	i_mhook2 = i_mhook;
 }
@@ -107,7 +115,7 @@ void PutImageWithMask(int PosX, int PosY, IMAGE* pImg, IMAGE* pImgMask) {
 //获取键盘事件
 void GetKeyboard() {
 	if (GetAsyncKeyState(27) & 0x8000) {	//ESC
-		gameState = Clear;
+		gameState = Pause;
 	}
 	if (GetAsyncKeyState(VK_DOWN) & 0x8000) {
 		if (hook.isThrow)	//如果钩子已经投出，则不再监视
@@ -220,12 +228,16 @@ void DrawUI() {
 	setbkmode(TRANSPARENT);
 
 	TCHAR scoreText[30];
-	_stprintf_s(scoreText, _T("分数：%d"), player.score);
-	outtextxy(0,0,scoreText);
+	_stprintf_s(scoreText, _T("金钱：$%d"), player.score);
+	outtextxy(10,10,scoreText);
 
 	TCHAR goalText[30];
-	_stprintf_s(goalText, _T("目标：%d"), player.goal);
-	outtextxy(0, 40, goalText);
+	_stprintf_s(goalText, _T("目标钱数：$%d"), player.goal);
+	outtextxy(10, 50, goalText);
+
+	TCHAR timeText[30];
+	_stprintf_s(timeText, _T("时间：%d"), Time);
+	outtextxy(800, 10, timeText);
 }
 
 
@@ -422,7 +434,20 @@ bool CollisionDetect(int rect1x, int rect1y, int rect1width, int rect1height, Ob
 }
 
 void GameOver() {
-	putimage(0, 0, &i_clear);
+	if (Time == 0) {
+		if (player.score >= player.goal) {
+			Resize(NULL, i_clear.getwidth(), i_clear.getheight());
+			putimage(0, 0, &i_clear);
+		}
+		else {
+			Resize(NULL, i_end.getwidth(), i_end.getheight());
+			putimage(0, 0, &i_end);
+		}
+	}
+	else {
+		Resize(NULL, i_clear.getwidth(), i_clear.getheight());
+		putimage(0, 0, &i_clear);
+	}
 }
 
 void Start() {
@@ -435,11 +460,15 @@ void Update() {
 	switch (gameState)
 	{
 	case Running:
+		timer++;	//计时器
+		if (timer == 60) {
+			timer = 0;
+			Time--;
+		}
 		DrawBackground();
 		DrawPlayer();
 		DrawObject();
 		DrawUI();
-
 		DrawHook();	//绘制钩子
 		HookSway();	//钩子摆动
 
@@ -448,13 +477,17 @@ void Update() {
 			m = GetMouseMsg();
 			MouseEvent();
 		}
+
 		//检测是否清除了全部金块
 		if (list.head == NULL) {
-			gameState = Clear;
+			gameState = Finished;
+		}
+		if (Time == 0) {
+			gameState = Finished;
 		}
 		break;
 
-	case Clear:
+	case Finished:
 		GameOver();
 		break;
 
