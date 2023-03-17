@@ -142,7 +142,7 @@ void Initialize() {
 	player.x = WINDOWS_WIDTH / 2 - 50;
 	player.y = WINDOWS_HEIGHT / 2 - 240;
 	player.score = 0;
-	player.goal = 300;
+	player.goal = 500;
 	player.timer = 0;
 	player.index = 0;
 
