@@ -6,7 +6,7 @@
 #include <math.h>
 #include <time.h>
 
-#pragma comment(lib,"msimg32.lib")
+//#pragma comment(lib,"msimg32.lib")
 
 #define WINDOWS_WIDTH 960
 #define WINDOWS_HEIGHT 540
@@ -84,4 +84,6 @@ void HookSway();
 void ThrowHook();
 void HookBack(int speed);
 void HookBack(int speed, int index);
+void SetObjectPosition(List* pList, Object* obj);
 bool CollisionDetect(Object obj);
+bool CollisionDetect(int rect1x, int rect1y, int rect1width, int rect1height, Object obj);

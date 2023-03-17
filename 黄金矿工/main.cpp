@@ -158,35 +158,27 @@ void Initialize() {
 	list.head = NULL;
 	for (int i = 0; i < BIG_GOLD_AMOUNT; i++) {
 		Object bigGold;
-		bigGold.x = rand() % WINDOWS_WIDTH;
-		bigGold.y = rand() % (WINDOWS_HEIGHT - 110) + 110;
 		bigGold.image = &i_biggold;
 		bigGold.m_image = &i_mbiggold;
+		SetObjectPosition(&list, &bigGold);
 		bigGold.size = rand() % 3 + 6;	//·¶Î§6-8
 		bigGold.score = 20 * bigGold.size;	//120-160
-		/*int scale = 10 * bigGold.size + 90;
-		int width = bigGold.image->getwidth();
-		int height = bigGold.image->getheight();
-		Resize(bigGold.image, width * 0.01 * scale, height * 0.01 * scale);
-		Resize(bigGold.m_image, width * 0.01 * scale, height * 0.01 * scale);*/
 		Add(&list, bigGold);
 	}
 	for (int i = 0; i < SMALL_GOLD_AMOUNT; i++) {
 		Object smallGold;
-		smallGold.x = rand() % WINDOWS_WIDTH;
-		smallGold.y = rand() % (WINDOWS_HEIGHT - 110) + 110;
 		smallGold.image = &i_smallgold;
 		smallGold.m_image = &i_msmallgold;
+		SetObjectPosition(&list, &smallGold);
 		smallGold.size = rand() % 3 + 1;	//·¶Î§1-3
 		smallGold.score = 20 * smallGold.size;	//20-60
 		Add(&list, smallGold);
 	}
 	for (int i = 0; i < DIAMOND_AMOUNT; i++) {
 		Object diamond;
-		diamond.x = rand() % WINDOWS_WIDTH;
-		diamond.y = rand() % (WINDOWS_HEIGHT - 110) + 110;
 		diamond.image = &i_diamond;
 		diamond.m_image = &i_mdiamond;
+		SetObjectPosition(&list, &diamond);
 		diamond.size = 1;
 		diamond.score = 200;
 		Add(&list, diamond);
@@ -353,6 +345,32 @@ void HookBack(int speed, int index) {
 	}
 }
 
+//ÉèÖÃ¶ÔÏóÎ»ÖÃ
+void SetObjectPosition(List *pList,Object *obj) {
+	if (pList->head == NULL) {
+		obj->x = rand() % (WINDOWS_WIDTH - 50);
+		obj->y = rand() % (WINDOWS_HEIGHT - 160) + 110;
+		return;
+	}
+	int x, y;
+	Node* p = pList->head;
+	//ÕÒµ½Ä©Î²
+	while (p->next) {
+		p = p->next;
+	}
+	while (1)
+	{
+		x = rand() % (WINDOWS_WIDTH - 50);
+		y = rand() % (WINDOWS_HEIGHT - 160) + 110;
+		if (!CollisionDetect(x, y, obj->image->getwidth(), obj->image->getheight(), p->object)) {
+			break;
+		}
+	}
+	obj->x = x;
+	obj->y = y;
+	return;
+}
+
 //Åö×²¼ì²â
 bool CollisionDetect(Object obj) {
 	int rect1x = hook.endx-hook.dx;
@@ -368,6 +386,23 @@ bool CollisionDetect(Object obj) {
 		(rect2x+rect2width)>=rect1x &&
 		(rect1y+rect1height)>=rect2y &&
 		(rect2y+rect2height)>=rect1y)
+	{
+		return true;
+	}
+	return false;
+}
+
+//Åö×²¼ì²â
+bool CollisionDetect(int rect1x, int rect1y, int rect1width, int rect1height, Object obj) {
+	int rect2x = obj.x;
+	int rect2y = obj.y;
+	int rect2width = obj.image->getwidth();
+	int rect2height = obj.image->getheight();
+
+	if ((rect1x + rect1width) >= rect2x &&
+		(rect2x + rect2width) >= rect1x &&
+		(rect1y + rect1height) >= rect2y &&
+		(rect2y + rect2height) >= rect1y)
 	{
 		return true;
 	}
