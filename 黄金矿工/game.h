@@ -12,13 +12,12 @@
 #define WINDOWS_HEIGHT 540
 #define BIG_GOLD_AMOUNT 3
 #define SMALL_GOLD_AMOUNT 5
-#define DIAMOND_AMOUNT 3
+#define DIAMOND_AMOUNT 2
 
 enum GameState
 {
 	Running,
-	Pause,
-	GameOver,
+	Clear,
 };
 
 typedef struct 
@@ -87,3 +86,4 @@ void HookBack(int speed, int index);
 void SetObjectPosition(List* pList, Object* obj);
 bool CollisionDetect(Object obj);
 bool CollisionDetect(int rect1x, int rect1y, int rect1width, int rect1height, Object obj);
+void GameOver();

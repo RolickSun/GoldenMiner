@@ -8,6 +8,7 @@ IMAGE i_hook;
 IMAGE i_mhook;
 IMAGE i_hook2;
 IMAGE i_mhook2;
+IMAGE i_clear;
 
 IMAGE i_biggold;
 IMAGE i_mbiggold;
@@ -92,6 +93,7 @@ void LoadImages() {
 	loadimage(&i_msmallgold, _T(".\\Resources\\pictures\\small_gold_mask.bmp"));
 	loadimage(&i_diamond, _T(".\\Resources\\pictures\\diamond.png"));
 	loadimage(&i_mdiamond, _T(".\\Resources\\pictures\\diamond_mask.png"));
+	loadimage(&i_clear, _T(".\\Resources\\pictures\\clear.png"));
 	i_hook2 = i_hook;
 	i_mhook2 = i_mhook;
 }
@@ -105,7 +107,7 @@ void PutImageWithMask(int PosX, int PosY, IMAGE* pImg, IMAGE* pImgMask) {
 //获取键盘事件
 void GetKeyboard() {
 	if (GetAsyncKeyState(27) & 0x8000) {	//ESC
-		gameState = GameOver;
+		gameState = Clear;
 	}
 	if (GetAsyncKeyState(VK_DOWN) & 0x8000) {
 		if (hook.isThrow)	//如果钩子已经投出，则不再监视
@@ -332,37 +334,47 @@ void HookBack(int speed) {
 void HookBack(int speed, int index) {
 	hook.length -= speed;
 	Object* obj = Find(&list, index);
-	if (obj != NULL) {
+	if (obj == NULL) {
+		return;
+	}
+	else {
 		obj->x = hook.endx - hook.dx;
 		obj->y = hook.endy - hook.dy;
-	}
-	if (hook.length <= 0) {
-		hook.length = 0;
-		hook.carry = 0;
-		player.score += obj->score;
-		Delete(&list, index);
-		hook.isThrow = false;
+		if (hook.length <= 0) {
+			hook.length = 0;
+			hook.carry = 0;
+			player.score += obj->score;
+			Delete(&list, index);
+			hook.isThrow = false;
+		}
 	}
 }
 
 //设置对象位置
 void SetObjectPosition(List *pList,Object *obj) {
 	if (pList->head == NULL) {
+		//第一个对象不需要检测碰撞
 		obj->x = rand() % (WINDOWS_WIDTH - 50);
 		obj->y = rand() % (WINDOWS_HEIGHT - 160) + 110;
 		return;
 	}
+
 	int x, y;
 	Node* p = pList->head;
-	//找到末尾
-	while (p->next) {
-		p = p->next;
-	}
 	while (1)
 	{
 		x = rand() % (WINDOWS_WIDTH - 50);
 		y = rand() % (WINDOWS_HEIGHT - 160) + 110;
-		if (!CollisionDetect(x, y, obj->image->getwidth(), obj->image->getheight(), p->object)) {
+		//和链表中的每一项检测碰撞
+		while (p) {
+			if (CollisionDetect(x, y, obj->image->getwidth(), obj->image->getheight(), p->object)) {
+				p = pList->head;	//如果碰撞，重新生成位置，重新检测
+				break;
+			}
+			p = p->next;
+		}
+		//链表中的每一项都检测完毕
+		if (p == NULL) {
 			break;
 		}
 	}
@@ -409,6 +421,10 @@ bool CollisionDetect(int rect1x, int rect1y, int rect1width, int rect1height, Ob
 	return false;
 }
 
+void GameOver() {
+	putimage(0, 0, &i_clear);
+}
+
 void Start() {
 	initgraph(WINDOWS_WIDTH, WINDOWS_HEIGHT);
 	LoadImages();
@@ -416,18 +432,32 @@ void Start() {
 }
 
 void Update() {
-	DrawBackground();
-	DrawPlayer();
-	DrawObject();
-	DrawUI();
+	switch (gameState)
+	{
+	case Running:
+		DrawBackground();
+		DrawPlayer();
+		DrawObject();
+		DrawUI();
 
-	DrawHook();	//绘制钩子
-	HookSway();	//钩子摆动
+		DrawHook();	//绘制钩子
+		HookSway();	//钩子摆动
 
-	GetKeyboard();
-	if (MouseHit()) {
-		m = GetMouseMsg();
-		MouseEvent();
+		GetKeyboard();
+		if (MouseHit()) {
+			m = GetMouseMsg();
+			MouseEvent();
+		}
+		//检测是否清除了全部金块
+		if (list.head == NULL) {
+			gameState = Clear;
+		}
+		break;
+
+	case Clear:
+		GameOver();
+		break;
+
 	}
 }
 
