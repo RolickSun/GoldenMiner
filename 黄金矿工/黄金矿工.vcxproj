@@ -133,6 +133,7 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <Image Include="Resources\pictures\atlas.png" />
     <Image Include="Resources\pictures\bakudan.bmp" />
     <Image Include="Resources\pictures\bakudan_mask.bmp" />
     <Image Include="Resources\pictures\barrel.png" />
@@ -152,7 +153,13 @@
     <Image Include="Resources\pictures\hook_mask.bmp" />
     <Image Include="Resources\pictures\level-background-0.jpg" />
     <Image Include="Resources\pictures\level-background-1.jpg" />
+    <Image Include="Resources\pictures\logo.png" />
+    <Image Include="Resources\pictures\pause_background.png" />
     <Image Include="Resources\pictures\shop.png" />
+    <Image Include="Resources\pictures\shushu.png" />
+    <Image Include="Resources\pictures\shushu_diamond.png" />
+    <Image Include="Resources\pictures\shushu_diamond_mask.png" />
+    <Image Include="Resources\pictures\shushu_mask.png" />
     <Image Include="Resources\pictures\small_gold.bmp" />
     <Image Include="Resources\pictures\small_gold_mask.bmp" />
     <Image Include="Resources\pictures\small_stone.jpg" />
@@ -160,6 +167,8 @@
     <Image Include="Resources\pictures\start.png" />
     <Image Include="Resources\pictures\startbottom1.png" />
     <Image Include="Resources\pictures\startbottom2.png" />
+    <Image Include="Resources\pictures\stone.png" />
+    <Image Include="Resources\pictures\stone_mask.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

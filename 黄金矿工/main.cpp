@@ -12,13 +12,14 @@ IMAGE i_hook2;
 IMAGE i_mhook2;
 IMAGE i_clear;
 IMAGE i_end;
-
 IMAGE i_biggold;
 IMAGE i_mbiggold;
 IMAGE i_smallgold;
 IMAGE i_msmallgold;
 IMAGE i_diamond;
 IMAGE i_mdiamond;
+IMAGE pause_background;
+IMAGE img;
 
 #pragma endregion
 
@@ -29,12 +30,15 @@ Player player;
 List list;	//链表用来储存游戏对象
 int Time = 30;
 int timer = 0;
+//TCHAR debugText[30];
 
 //链表添加
 void Add(List* pList, Object obj) {
 	Node* p = (Node*)malloc(sizeof(Node));
-	p->object = obj;
-	p->next = NULL;
+	if (p) {
+		p->object = obj;
+		p->next = NULL;
+	}
 
 	Node* last;
 	last = pList->head;
@@ -102,6 +106,7 @@ void LoadImages() {
 	loadimage(&i_mdiamond, _T(".\\Resources\\pictures\\diamond_mask.png"));
 	loadimage(&i_clear, _T(".\\Resources\\pictures\\clear.png"));
 	loadimage(&i_end, _T(".\\Resources\\pictures\\end.jpg"));
+	loadimage(&pause_background, _T(".\\Resources\\pictures\\pause_background.png"));
 	i_hook2 = i_hook;
 	i_mhook2 = i_mhook;
 }
@@ -115,6 +120,7 @@ void PutImageWithMask(int PosX, int PosY, IMAGE* pImg, IMAGE* pImgMask) {
 //获取键盘事件
 void GetKeyboard() {
 	if (GetAsyncKeyState(27) & 0x8000) {	//ESC
+		getimage(&img, 0, 0, WINDOWS_WIDTH, WINDOWS_HEIGHT);
 		gameState = Pause;
 	}
 	if (GetAsyncKeyState(VK_DOWN) & 0x8000) {
@@ -129,14 +135,26 @@ void MouseEvent() {
 	switch (m.uMsg)//对事件进行分类
 	{
 	case WM_MOUSEMOVE://如果是鼠标移动事件
+		//_stprintf_s(debugText, _T("x:%d y:%d"), m.x, m.y);
 		break;
 	case WM_LBUTTONDOWN://如果是点击鼠标左键
-		if (hook.isThrow)	//如果钩子已经投出，则不再监视
-			return;
-		ThrowHook();
+		if (gameState == Running) {
+			if (hook.isThrow)	//如果钩子已经投出，则不再监视
+				return;
+			ThrowHook();
+		}
+		if (gameState == Pause) {
+			if (m.x > 85 && m.x < 177 && m.y>178 && m.y < 214) {	//继续
+				gameState = Running;
+			}
+			if (m.x > 238 && m.x < 328 && m.y>178 && m.y < 214) {	//退出
+				closegraph();
+				exit(0);
+			}
+		}
 		break;
 	case WM_RBUTTONDOWN://如果是点击鼠标右键
-		return;//退出
+		return;
 	}
 
 }
@@ -287,7 +305,7 @@ void DrawHook() {
 			ThrowHook();
 
 	}
-	//rectangle(hook.endx - hook.dx, hook.endy-hook.dy, hook.endx -hook.dx+ i_hook2.getwidth(), hook.endy-hook.dy + i_hook2.getheight());
+	rectangle(hook.endx - hook.dx, hook.endy-hook.dy, hook.endx -hook.dx+ i_hook2.getwidth(), hook.endy-hook.dy + i_hook2.getheight());
 }
 
 //钩子旋转
@@ -433,6 +451,7 @@ bool CollisionDetect(int rect1x, int rect1y, int rect1width, int rect1height, Ob
 	return false;
 }
 
+//游戏结束
 void GameOver() {
 	if (Time == 0) {
 		if (player.score >= player.goal) {
@@ -485,6 +504,16 @@ void Update() {
 		if (Time == 0) {
 			gameState = Finished;
 		}
+		break;
+
+	case Pause:
+		putimage(0, 0, &img);
+		putimage(50, 50, &pause_background);
+		if (MouseHit()) {
+			m = GetMouseMsg();
+			MouseEvent();
+		}
+		//outtextxy(300, 300, debugText);
 		break;
 
 	case Finished:

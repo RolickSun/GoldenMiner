@@ -106,5 +106,32 @@
     <Image Include="Resources\pictures\startbottom2.png">
       <Filter>资源文件</Filter>
     </Image>
+    <Image Include="Resources\pictures\atlas.png">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="Resources\pictures\logo.png">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="Resources\pictures\shushu.png">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="Resources\pictures\shushu_diamond.png">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="Resources\pictures\shushu_diamond_mask.png">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="Resources\pictures\shushu_mask.png">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="Resources\pictures\stone.png">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="Resources\pictures\stone_mask.png">
+      <Filter>资源文件</Filter>
+    </Image>
+    <Image Include="Resources\pictures\pause_background.png">
+      <Filter>资源文件</Filter>
+    </Image>
   </ItemGroup>
 </Project>
