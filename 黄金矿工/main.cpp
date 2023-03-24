@@ -6,10 +6,8 @@ IMAGE i_back;
 IMAGE i_brick;
 IMAGE i_player[2];
 IMAGE i_mplayer[2];
-IMAGE i_hook;
-IMAGE i_mhook;
-IMAGE i_hook2;
-IMAGE i_mhook2;
+IMAGE i_hook[2];
+IMAGE i_mhook[2];
 IMAGE i_clear;
 IMAGE i_end;
 IMAGE i_biggold;
@@ -18,6 +16,12 @@ IMAGE i_smallgold;
 IMAGE i_msmallgold;
 IMAGE i_diamond;
 IMAGE i_mdiamond;
+IMAGE i_stone;
+IMAGE i_mstone;
+IMAGE i_shushu_left[2];
+IMAGE i_mshushu_left[2];
+IMAGE i_shushu_right[2];
+IMAGE i_mshushu_right[2];
 IMAGE pause_background;
 IMAGE img;
 
@@ -96,19 +100,48 @@ void LoadImages() {
 	loadimage(&i_player[1], _T(".\\Resources\\pictures\\char2.jpg"));
 	loadimage(&i_mplayer[0], _T(".\\Resources\\pictures\\char1_mask.jpg"));
 	loadimage(&i_mplayer[1], _T(".\\Resources\\pictures\\char2_mask.jpg"));
-	loadimage(&i_hook, _T(".\\Resources\\pictures\\hook.bmp"));
-	loadimage(&i_mhook, _T(".\\Resources\\pictures\\hook_mask.bmp"));
+	loadimage(&i_hook[0], _T(".\\Resources\\pictures\\hook.bmp"));
+	loadimage(&i_mhook[0], _T(".\\Resources\\pictures\\hook_mask.bmp"));
 	loadimage(&i_biggold, _T(".\\Resources\\pictures\\big_gold.png"));
 	loadimage(&i_mbiggold, _T(".\\Resources\\pictures\\big_gold_mask.png"));
 	loadimage(&i_smallgold, _T(".\\Resources\\pictures\\small_gold.bmp"));
 	loadimage(&i_msmallgold, _T(".\\Resources\\pictures\\small_gold_mask.bmp"));
 	loadimage(&i_diamond, _T(".\\Resources\\pictures\\diamond.png"));
 	loadimage(&i_mdiamond, _T(".\\Resources\\pictures\\diamond_mask.png"));
+	loadimage(&i_stone, _T(".\\Resources\\pictures\\stone.png"),50,42,true);
+	loadimage(&i_mstone, _T(".\\Resources\\pictures\\stone_mask.png"),50,42,true);
+	loadimage(&i_shushu_left[0], _T(".\\Resources\\pictures\\shushu.png"));
+	loadimage(&i_shushu_left[1], _T(".\\Resources\\pictures\\shushu_diamond.png"));
+	loadimage(&i_mshushu_left[0], _T(".\\Resources\\pictures\\shushu_mask.png"));
+	loadimage(&i_mshushu_left[1], _T(".\\Resources\\pictures\\shushu_diamond_mask.png"));
 	loadimage(&i_clear, _T(".\\Resources\\pictures\\clear.png"));
 	loadimage(&i_end, _T(".\\Resources\\pictures\\end.jpg"));
 	loadimage(&pause_background, _T(".\\Resources\\pictures\\pause_background.png"));
-	i_hook2 = i_hook;
-	i_mhook2 = i_mhook;
+	i_hook[1] = i_hook[0];
+	i_mhook[1] = i_mhook[0];
+
+	for (int i = 0; i < 2; i++) {
+		i_shushu_right[i] = i_shushu_left[i];
+		FlipImage(&i_shushu_right[i], &i_shushu_left[i]);
+		i_mshushu_right[i] = i_mshushu_left[i];
+		FlipImage(&i_mshushu_right[i], &i_mshushu_left[i]);
+	}
+}
+
+//翻转图片
+void FlipImage(IMAGE* pDst, IMAGE* pSrc) {
+	DWORD* pdSrc = GetImageBuffer(pSrc);
+	DWORD* pdDst = GetImageBuffer(pDst);
+	int width = pSrc->getwidth();
+	int height = pSrc->getheight();
+	for (int y = 0; y < height; y++) {
+		for (int x = 0; x < width; x++) {
+			int r = GetRValue(pdSrc[x + y * width]);
+			int g = GetGValue(pdSrc[x + y * width]);
+			int b = GetBValue(pdSrc[x + y * width]);
+			pdDst[width - x + y * width] = RGB(r, g, b);
+		}
+	}
 }
 
 //利用蒙版图层打印透明背景图片
@@ -184,32 +217,63 @@ void Initialize() {
 	hook.carry = 0;
 
 	list.head = NULL;
-	for (int i = 0; i < BIG_GOLD_AMOUNT; i++) {
+	for (int i = 0; i < BIG_GOLD_AMOUNT; i++) {		// 生成大金块
 		Object bigGold;
 		bigGold.image = &i_biggold;
 		bigGold.m_image = &i_mbiggold;
 		SetObjectPosition(&list, &bigGold);
 		bigGold.size = rand() % 3 + 6;	//范围6-8
 		bigGold.score = 20 * bigGold.size;	//120-160
+		bigGold.isMove = 0;
 		Add(&list, bigGold);
 	}
-	for (int i = 0; i < SMALL_GOLD_AMOUNT; i++) {
+	for (int i = 0; i < SMALL_GOLD_AMOUNT; i++) {	//生成小金块
 		Object smallGold;
 		smallGold.image = &i_smallgold;
 		smallGold.m_image = &i_msmallgold;
 		SetObjectPosition(&list, &smallGold);
 		smallGold.size = rand() % 3 + 1;	//范围1-3
 		smallGold.score = 20 * smallGold.size;	//20-60
+		smallGold.isMove = 0;
 		Add(&list, smallGold);
 	}
-	for (int i = 0; i < DIAMOND_AMOUNT; i++) {
+	for (int i = 0; i < DIAMOND_AMOUNT; i++) {		//生成钻石和鼠鼠
 		Object diamond;
 		diamond.image = &i_diamond;
 		diamond.m_image = &i_mdiamond;
 		SetObjectPosition(&list, &diamond);
 		diamond.size = 1;
 		diamond.score = 200;
+		diamond.isMove = 0;
 		Add(&list, diamond);
+
+		Object mouse;
+		mouse.dir = rand() % 2;
+		mouse.y = diamond.y;
+		if (mouse.dir == 0) {
+			mouse.x = WINDOWS_WIDTH;
+			mouse.image = &i_shushu_left[0];
+			mouse.m_image = &i_mshushu_left[0];
+		}
+		else {
+			mouse.x = 0;
+			mouse.image = &i_shushu_right[0];
+			mouse.m_image = &i_mshushu_right[0];
+		}
+		mouse.size = 1;
+		mouse.score = 10;
+		mouse.isMove = 1;
+		Add(&list, mouse);
+	}
+	for (int i = 0; i < STONE_AMOUNT; i++) {		//生成石头
+		Object stone;
+		stone.image = &i_stone;
+		stone.m_image = &i_mstone;
+		SetObjectPosition(&list, &stone);
+		stone.size = 9;
+		stone.score = 10;
+		stone.isMove = 0;
+		Add(&list, stone);
 	}
 }
 
@@ -264,6 +328,7 @@ void DrawObject() {
 	Node* p;
 	for (p = list.head; p; p = p->next) {
 		PutImageWithMask(p->object.x, p->object.y, p->object.image, p->object.m_image);
+		//debug
 		setlinecolor(GREEN);
 		rectangle(p->object.x, p->object.y, p->object.x + p->object.image->getwidth(),p->object.y+ p->object.image->getheight());
 	}
@@ -276,7 +341,7 @@ void DrawHook() {
 	setlinestyle(PS_SOLID, 2);
 	setlinecolor(DARKGRAY);
 	line(hook.x, hook.y, hook.endx, hook.endy);
-	PutImageWithMask(hook.endx-hook.dx, hook.endy-hook.dy, &i_hook2, &i_mhook2);
+	PutImageWithMask(hook.endx-hook.dx, hook.endy-hook.dy, &i_hook[1], &i_mhook[1]);
 
 	//如果钩子被投出
 	if (hook.isThrow) {
@@ -305,7 +370,8 @@ void DrawHook() {
 			ThrowHook();
 
 	}
-	rectangle(hook.endx - hook.dx, hook.endy-hook.dy, hook.endx -hook.dx+ i_hook2.getwidth(), hook.endy-hook.dy + i_hook2.getheight());
+	//debug
+	rectangle(hook.endx - hook.dx, hook.endy-hook.dy, hook.endx -hook.dx+ i_hook[1].getwidth(), hook.endy - hook.dy + i_hook[1].getheight());
 }
 
 //钩子旋转
@@ -331,8 +397,8 @@ void HookSway() {
 	default:
 		break;
 	}
-	rotateimage(&i_hook2, &i_hook, hook.angle * 3.14 / 180, WHITE, true, true);
-	rotateimage(&i_mhook2, &i_mhook, hook.angle * 3.14 / 180, BLACK, true, true);
+	rotateimage(&i_hook[1], &i_hook[0], hook.angle * 3.14 / 180, WHITE, true, true);
+	rotateimage(&i_mhook[1], &i_mhook[0], hook.angle * 3.14 / 180, BLACK, true, true);
 
 	if (hook.angle > 0) {
 		hook.dy = 18 * sin(hook.angle * 3.14 / 180);
@@ -380,6 +446,26 @@ void HookBack(int speed, int index) {
 	}
 }
 
+//老鼠移动
+void ShushuMove() {
+	Node* p;
+	for (p = list.head; p; p = p->next) {
+		if (p->object.isMove == 1) {
+			switch (p->object.dir)
+			{
+			case 0:
+				p->object.x = p->object.x - 2;
+				break;
+			case 1:
+				p->object.x = p->object.x + 2;
+				break;
+			}
+		}
+		continue;
+	}
+
+}
+
 //设置对象位置
 void SetObjectPosition(List *pList,Object *obj) {
 	if (pList->head == NULL) {
@@ -417,8 +503,8 @@ void SetObjectPosition(List *pList,Object *obj) {
 bool CollisionDetect(Object obj) {
 	int rect1x = hook.endx-hook.dx;
 	int rect1y = hook.endy-hook.dy;
-	int rect1width = i_hook2.getwidth();
-	int rect1height = i_hook2.getheight();
+	int rect1width = i_hook[1].getwidth();
+	int rect1height = i_hook[1].getheight();
 	int rect2x = obj.x;
 	int rect2y = obj.y;
 	int rect2width = obj.image->getwidth();
@@ -490,6 +576,8 @@ void Update() {
 		DrawUI();
 		DrawHook();	//绘制钩子
 		HookSway();	//钩子摆动
+
+		ShushuMove();
 
 		GetKeyboard();
 		if (MouseHit()) {
