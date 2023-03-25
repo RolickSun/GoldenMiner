@@ -628,19 +628,13 @@ bool CollisionDetect(Object obj1, Object obj2) {
 
 //游戏结束
 void GameOver() {
-	if (Time == 0) {	//时间截至
-		if (player.score >= player.goal) {	//如果分数达到目标，游戏成功
-			Resize(NULL, i_clear.getwidth(), i_clear.getheight());
-			putimage(0, 0, &i_clear);
-		}
-		else {	//没达到目标，游戏失败
-			Resize(NULL, i_end.getwidth(), i_end.getheight());
-			putimage(0, 0, &i_end);
-		}
-	}
-	else {	//所有物体都被抓取，游戏成功
+	if (player.score >= player.goal) {	//如果分数达到目标，游戏成功
 		Resize(NULL, i_clear.getwidth(), i_clear.getheight());
 		putimage(0, 0, &i_clear);
+	}
+	else {	//没达到目标，游戏失败
+		Resize(NULL, i_end.getwidth(), i_end.getheight());
+		putimage(0, 0, &i_end);
 	}
 }
 
