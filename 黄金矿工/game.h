@@ -12,8 +12,8 @@
 #define WINDOWS_HEIGHT 540
 #define BIG_GOLD_AMOUNT 3
 #define SMALL_GOLD_AMOUNT 5
-#define DIAMOND_AMOUNT 2
-#define STONE_AMOUNT 4
+#define DIAMOND_AMOUNT 3
+#define STONE_AMOUNT 5
 
 enum GameState
 {
@@ -59,6 +59,7 @@ typedef struct
 	IMAGE* m_image;
 	int dir;	//方向，用于老鼠移动，0-左，1-右
 	int isMove;	//是否移动，用来标记是否是老鼠
+	int takeAble;	//能否被老鼠拿取
 } Object;
 
 typedef struct _node {
@@ -72,6 +73,7 @@ typedef struct _list {
 
 void Add(List* pList, Object obj);
 void Delete(List* pList, int index);
+void Delete(List* pList, Object* obj);
 Object* Find(List* pList, int index);
 void LoadImages();
 void FlipImage(IMAGE* pDst, IMAGE* pSrc);
@@ -92,4 +94,5 @@ void ShushuMove();
 void SetObjectPosition(List* pList, Object* obj);
 bool CollisionDetect(Object obj);
 bool CollisionDetect(int rect1x, int rect1y, int rect1width, int rect1height, Object obj);
+bool CollisionDetect(Object obj1, Object obj2);
 void GameOver();

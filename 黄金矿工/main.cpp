@@ -32,8 +32,8 @@ MOUSEMSG m; //设置鼠标信息
 Hook hook;
 Player player;
 List list;	//链表用来储存游戏对象
-int Time = 30;
-int timer = 0;
+int Time = 30;	//游戏倒计时
+int timer = 0;	//计时器
 //TCHAR debugText[30];
 
 //链表添加
@@ -73,6 +73,24 @@ void Delete(List* pList, int index) {
 			break;
 		}
 		i++;
+	}
+
+}
+
+//链表删除
+void Delete(List* pList, Object* obj) {
+	Node* p, * q;
+	for (p = pList->head, q = NULL; p; q = p, p = p->next) {
+		if (&p->object==obj) {
+			if (q) {
+				q->next = p->next;	//q的后位等于p的后位，就是把p从链表上忽略掉
+			}
+			else {	//如果首位就是应删去的值
+				pList->head = p->next;	//链表头为p的后位
+			}
+			free(p);
+			break;
+		}
 	}
 
 }
@@ -128,7 +146,7 @@ void LoadImages() {
 	}
 }
 
-//翻转图片
+//左右翻转图片
 void FlipImage(IMAGE* pDst, IMAGE* pSrc) {
 	DWORD* pdSrc = GetImageBuffer(pSrc);
 	DWORD* pdDst = GetImageBuffer(pDst);
@@ -225,6 +243,7 @@ void Initialize() {
 		bigGold.size = rand() % 3 + 6;	//范围6-8
 		bigGold.score = 20 * bigGold.size;	//120-160
 		bigGold.isMove = 0;
+		bigGold.takeAble = 0;
 		Add(&list, bigGold);
 	}
 	for (int i = 0; i < SMALL_GOLD_AMOUNT; i++) {	//生成小金块
@@ -235,7 +254,19 @@ void Initialize() {
 		smallGold.size = rand() % 3 + 1;	//范围1-3
 		smallGold.score = 20 * smallGold.size;	//20-60
 		smallGold.isMove = 0;
+		smallGold.takeAble = 0;
 		Add(&list, smallGold);
+	}
+	for (int i = 0; i < STONE_AMOUNT; i++) {		//生成石头
+		Object stone;
+		stone.image = &i_stone;
+		stone.m_image = &i_mstone;
+		SetObjectPosition(&list, &stone);
+		stone.size = 9;
+		stone.score = 10;
+		stone.isMove = 0;
+		stone.takeAble = 0;
+		Add(&list, stone);
 	}
 	for (int i = 0; i < DIAMOND_AMOUNT; i++) {		//生成钻石和鼠鼠
 		Object diamond;
@@ -245,6 +276,7 @@ void Initialize() {
 		diamond.size = 1;
 		diamond.score = 200;
 		diamond.isMove = 0;
+		diamond.takeAble = 1;
 		Add(&list, diamond);
 
 		Object mouse;
@@ -263,23 +295,14 @@ void Initialize() {
 		mouse.size = 1;
 		mouse.score = 10;
 		mouse.isMove = 1;
+		mouse.takeAble = -1;
 		Add(&list, mouse);
-	}
-	for (int i = 0; i < STONE_AMOUNT; i++) {		//生成石头
-		Object stone;
-		stone.image = &i_stone;
-		stone.m_image = &i_mstone;
-		SetObjectPosition(&list, &stone);
-		stone.size = 9;
-		stone.score = 10;
-		stone.isMove = 0;
-		Add(&list, stone);
 	}
 }
 
 //绘制角色
 void DrawPlayer() {
-	if (hook.isThrow) {
+	if (hook.isThrow) {	//如果钩子投出，播放动画
 		player.timer++;
 		if (player.timer > 10) {
 			player.timer = 0;
@@ -336,11 +359,11 @@ void DrawObject() {
 
 //绘制钩子
 void DrawHook() {
-	hook.endx = hook.x + hook.length * sin(hook.angle*3.14/180);
+	hook.endx = hook.x + hook.length * sin(hook.angle*3.14/180);	//计算钩子末端坐标
 	hook.endy = hook.y + hook.length * cos(hook.angle*3.14/180);
 	setlinestyle(PS_SOLID, 2);
 	setlinecolor(DARKGRAY);
-	line(hook.x, hook.y, hook.endx, hook.endy);
+	line(hook.x, hook.y, hook.endx, hook.endy);	//绘制绳子
 	PutImageWithMask(hook.endx-hook.dx, hook.endy-hook.dy, &i_hook[1], &i_mhook[1]);
 
 	//如果钩子被投出
@@ -361,11 +384,11 @@ void DrawHook() {
 			index++;
 		}
 
-		if (hook.isBack)
+		if (hook.isBack)	//钩子回收
 			if (hook.carry == 0)	//没有负载，证明没有抓到物品
 				HookBack(2 * hook.speed);
 			else
-				HookBack(2 * hook.speed - hook.carry , index);	//抓到了物品
+				HookBack(2 * hook.speed - hook.carry ,index);	//抓到了物品
 		else
 			ThrowHook();
 
@@ -397,9 +420,10 @@ void HookSway() {
 	default:
 		break;
 	}
-	rotateimage(&i_hook[1], &i_hook[0], hook.angle * 3.14 / 180, WHITE, true, true);
+	rotateimage(&i_hook[1], &i_hook[0], hook.angle * 3.14 / 180, WHITE, true, true);	//旋转钩子图片
 	rotateimage(&i_mhook[1], &i_mhook[0], hook.angle * 3.14 / 180, BLACK, true, true);
 
+	//计算偏移量，使钩子视觉上绕轴心旋转
 	if (hook.angle > 0) {
 		hook.dy = 18 * sin(hook.angle * 3.14 / 180);
 		hook.dx = 35 * cos(hook.angle * 3.14 / 180) - 18 * cos(hook.angle * 3.14 / 180);
@@ -429,7 +453,7 @@ void HookBack(int speed) {
 //收回钩子与对象
 void HookBack(int speed, int index) {
 	hook.length -= speed;
-	Object* obj = Find(&list, index);
+	Object* obj = Find(&list, index);	//通过索引找到要收回的对象
 	if (obj == NULL) {
 		return;
 	}
@@ -439,8 +463,8 @@ void HookBack(int speed, int index) {
 		if (hook.length <= 0) {
 			hook.length = 0;
 			hook.carry = 0;
-			player.score += obj->score;
-			Delete(&list, index);
+			player.score += obj->score;	//将分数累加
+			Delete(&list, index);	//删除物品
 			hook.isThrow = false;
 		}
 	}
@@ -450,15 +474,59 @@ void HookBack(int speed, int index) {
 void ShushuMove() {
 	Node* p;
 	for (p = list.head; p; p = p->next) {
-		if (p->object.isMove == 1) {
+		if (p->object.isMove == 1) {	//通过节点p遍历找到老鼠
 			switch (p->object.dir)
 			{
-			case 0:
+			case 0:	//左
 				p->object.x = p->object.x - 2;
+				{
+					Node* q;	//通过节点q遍历检测碰撞
+					for (q=list.head; q; q = q->next) {
+						if (CollisionDetect(p->object, q->object) && q->object.takeAble == 1) {	//如果抓到了钻石
+							p->object.image = &i_shushu_left[1];
+							p->object.m_image = &i_mshushu_left[1];
+							p->object.score = 210;
+							Delete(&list, &q->object);
+							break;
+						}
+						if (p->object.score == 210) {	//如果已经抓到了钻石
+							if (CollisionDetect(p->object, q->object)&&q->object.takeAble==0) {	//碰到物体就返回
+								p->object.image = &i_shushu_right[1];
+								p->object.m_image = &i_mshushu_right[1];
+								p->object.dir = 1;
+							}
+						}
+					}
+				}
 				break;
-			case 1:
+			case 1:	//右
 				p->object.x = p->object.x + 2;
+				{
+					Node* q;
+					for (q = list.head; q; q = q->next) {
+						if (CollisionDetect(p->object, q->object) && q->object.takeAble == 1) {	//如果抓到了钻石
+							p->object.image = &i_shushu_right[1];
+							p->object.m_image = &i_mshushu_right[1];
+							p->object.score = 210;
+							Delete(&list, &q->object);
+							break;
+						}
+						if (p->object.score == 210) {	//如果已经抓到了钻石
+							if (CollisionDetect(p->object, q->object)&&q->object.takeAble==0) {	//碰到物体就返回
+								p->object.image = &i_shushu_left[1];
+								p->object.m_image = &i_mshushu_left[1];
+								p->object.dir = 0;
+							}
+						}
+					}
+				}
 				break;
+			}
+			if (p->object.score == 210) {	//如果已经抓到了钻石
+				if (p->object.x > WINDOWS_WIDTH || p->object.x+28 < 0) {
+					Delete(&list, &p->object);	//老鼠移动到屏幕外，删除
+					break;
+				}
 			}
 		}
 		continue;
@@ -537,19 +605,40 @@ bool CollisionDetect(int rect1x, int rect1y, int rect1width, int rect1height, Ob
 	return false;
 }
 
+//碰撞检测
+bool CollisionDetect(Object obj1, Object obj2) {
+	int rect1x = obj1.x;
+	int rect1y = obj1.y;
+	int rect1width = obj1.image->getwidth();
+	int rect1height = obj1.image->getheight();
+	int rect2x = obj2.x;
+	int rect2y = obj2.y;
+	int rect2width = obj2.image->getwidth();
+	int rect2height = obj2.image->getheight();
+
+	if ((rect1x + rect1width) >= rect2x &&
+		(rect2x + rect2width) >= rect1x &&
+		(rect1y + rect1height) >= rect2y &&
+		(rect2y + rect2height) >= rect1y)
+	{
+		return true;
+	}
+	return false;
+}
+
 //游戏结束
 void GameOver() {
-	if (Time == 0) {
-		if (player.score >= player.goal) {
+	if (Time == 0) {	//时间截至
+		if (player.score >= player.goal) {	//如果分数达到目标，游戏成功
 			Resize(NULL, i_clear.getwidth(), i_clear.getheight());
 			putimage(0, 0, &i_clear);
 		}
-		else {
+		else {	//没达到目标，游戏失败
 			Resize(NULL, i_end.getwidth(), i_end.getheight());
 			putimage(0, 0, &i_end);
 		}
 	}
-	else {
+	else {	//所有物体都被抓取，游戏成功
 		Resize(NULL, i_clear.getwidth(), i_clear.getheight());
 		putimage(0, 0, &i_clear);
 	}
@@ -565,10 +654,10 @@ void Update() {
 	switch (gameState)
 	{
 	case Running:
-		timer++;	//计时器
+		timer++;	//计时器+1
 		if (timer == 60) {
 			timer = 0;
-			Time--;
+			Time--;	//倒计时
 		}
 		DrawBackground();
 		DrawPlayer();
@@ -576,7 +665,6 @@ void Update() {
 		DrawUI();
 		DrawHook();	//绘制钩子
 		HookSway();	//钩子摆动
-
 		ShushuMove();
 
 		GetKeyboard();
@@ -589,6 +677,7 @@ void Update() {
 		if (list.head == NULL) {
 			gameState = Finished;
 		}
+		//检测倒计时是否归零
 		if (Time == 0) {
 			gameState = Finished;
 		}
