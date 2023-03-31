@@ -131,8 +131,8 @@ void LoadImages() {
 	loadimage(&i_msmallgold, _T(".\\Resources\\pictures\\small_gold_mask.bmp"));
 	loadimage(&i_diamond, _T(".\\Resources\\pictures\\diamond.png"));
 	loadimage(&i_mdiamond, _T(".\\Resources\\pictures\\diamond_mask.png"));
-	loadimage(&i_stone, _T(".\\Resources\\pictures\\stone.png"),50,42,true);
-	loadimage(&i_mstone, _T(".\\Resources\\pictures\\stone_mask.png"),50,42,true);
+	loadimage(&i_stone, _T(".\\Resources\\pictures\\stone.png"),57,48,true);
+	loadimage(&i_mstone, _T(".\\Resources\\pictures\\stone_mask.png"),57,48,true);
 	loadimage(&i_shushu_left[0], _T(".\\Resources\\pictures\\shushu.png"));
 	loadimage(&i_shushu_left[1], _T(".\\Resources\\pictures\\shushu_diamond.png"));
 	loadimage(&i_mshushu_left[0], _T(".\\Resources\\pictures\\shushu_mask.png"));
@@ -303,8 +303,21 @@ void Initialize() {
 		mouse.takeAble = -1;
 		Add(&list, mouse);
 	}
+
+	//添加音乐文件
 	mciSendString(_T("open .\\Resources\\sound\\bgm.mp3 alias bgm"), 0, 0, 0);
 	mciSendString(_T("open .\\Resources\\sound\\high-value.mp3 alias high-value"), 0, 0, 0);
+}
+
+//绘制图像
+void Draw() {
+	putimage(0, 0, &i_back);	//绘制背景
+	putimage(-10, 100, &i_brick);
+
+	DrawPlayer();
+	DrawObject();
+	DrawHook();
+	DrawUI();
 }
 
 //绘制角色
@@ -320,13 +333,6 @@ void DrawPlayer() {
 	else {
 		PutImageWithMask(player.x, player.y, &i_player[0], &i_mplayer[0]);	//绘制主角
 	}
-}
-
-//绘制背景
-void DrawBackground()
-{
-	putimage(0, 0, &i_back);
-	putimage(-10, 100, &i_brick);
 }
 
 //绘制UI
@@ -657,14 +663,16 @@ void GameOver() {
 	}
 }
 
+// Start 在程序开始运行时被调用
 void Start() {
-	initgraph(WINDOWS_WIDTH, WINDOWS_HEIGHT, EX_SHOWCONSOLE);
+	initgraph(WINDOWS_WIDTH, WINDOWS_HEIGHT);
 	LoadImages();
 	Initialize();
 	mciSendString(_T("play bgm repeat"), 0, 0, 0);
 	//start2 = clock();
 }
 
+// Update 在每一帧被调用
 void Update() {
 	switch (gameState)
 	{
@@ -673,23 +681,22 @@ void Update() {
 		if (timer == 60) {
 			timer = 0;
 			Time--;	//倒计时
-			/*finish2 = clock();
-			double duration = (double)(finish2 - start2) / CLOCKS_PER_SEC;
-			printf("%10.2f seconds\n", duration);
-			start2 = clock();*/
-		}
-		DrawBackground();
-		DrawPlayer();
-		DrawObject();
-		DrawUI();
-		DrawHook();	//绘制钩子
-		HookSway();	//钩子摆动
-		ShushuMove();
 
-		GetKeyboard();
+			//finish2 = clock();
+			//double duration = (double)(finish2 - start2) / CLOCKS_PER_SEC;
+			//printf("%10.2f seconds\n", duration);
+			//start2 = clock();
+		}
+
+		Draw();	//绘图
+
+		HookSway();	//钩子摆动
+		ShushuMove();	//老鼠移动
+
+		GetKeyboard();	//获取键盘事件
 		if (MouseHit()) {
 			m = GetMouseMsg();
-			MouseEvent();
+			MouseEvent();	//获取鼠标事件
 		}
 
 		//检测是否清除了全部金块
@@ -731,24 +738,25 @@ int main() {
 		FlushBatchDraw();
 		Sleep(1000 / 60);
 		cleardevice();
-		/*if (((double)await/CLOCKS_PER_SEC)>=1.0) {
-			printf("FPS: %d\n", count);
-			count = 0;
-			await = (clock_t)0;
-		}
-		finish = clock();
-		await += (finish - start);*/
+		//if (((double)await/CLOCKS_PER_SEC)>=1.0) {
+		//	printf("FPS: %d\n", count);
+		//	count = 0;
+		//	await = (clock_t)0;
+		//}
+		//finish = clock();
+		//await += (finish - start);
 
+		//关闭已播放完的音乐文件
 		WCHAR buffer[48];
-		mciSendString(_T("status dig mode"), buffer, 48, 0);
+		mciSendString(_T("status dig mode"), buffer, _countof(buffer), 0);
 		if (wcscmp(buffer, L"stopped") == 0) {
 			mciSendString(_T("close dig"), 0, 0, 0);
 		}
-		mciSendString(_T("status low-value mode"), buffer, 48, 0);
+		mciSendString(_T("status low-value mode"), buffer, _countof(buffer), 0);
 		if (wcscmp(buffer, L"stopped") == 0) {
 			mciSendString(_T("close low-value"), 0, 0, 0);
 		}
-		mciSendString(_T("status normal-value mode"), buffer, 48, 0);
+		mciSendString(_T("status normal-value mode"), buffer, _countof(buffer), 0);
 		if (wcscmp(buffer, L"stopped") == 0) {
 			mciSendString(_T("close normal-value"), 0, 0, 0);
 		}
