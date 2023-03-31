@@ -7,6 +7,7 @@
 #include <time.h>
 
 //#pragma comment(lib,"msimg32.lib")
+#pragma comment(lib,"Winmm.lib")
 
 #define WINDOWS_WIDTH 960
 #define WINDOWS_HEIGHT 540

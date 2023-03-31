@@ -34,7 +34,12 @@ Player player;
 List list;	//链表用来储存游戏对象
 int Time = 30;	//游戏倒计时
 int timer = 0;	//计时器
+
 //TCHAR debugText[30];
+//clock_t start, finish;	//debug
+//clock_t await=clock_t(0);	//debug
+//clock_t start2, finish2;	//debug
+//int count = 0;	//debug
 
 //链表添加
 void Add(List* pList, Object obj) {
@@ -298,6 +303,8 @@ void Initialize() {
 		mouse.takeAble = -1;
 		Add(&list, mouse);
 	}
+	mciSendString(_T("open .\\Resources\\sound\\bgm.mp3 alias bgm"), 0, 0, 0);
+	mciSendString(_T("open .\\Resources\\sound\\high-value.mp3 alias high-value"), 0, 0, 0);
 }
 
 //绘制角色
@@ -439,6 +446,8 @@ void ThrowHook() {
 	hook.isThrow = true;
 	hook.isBack = false;
 	hook.length += hook.speed;
+	mciSendString(_T("open .\\Resources\\sound\\dig.mp3 alias dig"), 0, 0, 0);
+	mciSendString(_T("play dig"), 0, 0, 0);
 }
 
 //收回钩子
@@ -461,6 +470,14 @@ void HookBack(int speed, int index) {
 		obj->x = hook.endx - hook.dx;
 		obj->y = hook.endy - hook.dy;
 		if (hook.length <= 0) {
+			if (obj->score <= 10) {
+				mciSendString(_T("open .\\Resources\\sound\\low-value.mp3 alias low-value"), 0, 0, 0);
+				mciSendString(_T("play low-value"), 0, 0, 0);
+			}
+			else {
+				mciSendString(_T("open .\\Resources\\sound\\normal-value.mp3 alias normal-value"), 0, 0, 0);
+				mciSendString(_T("play normal-value"), 0, 0, 0);
+			}
 			hook.length = 0;
 			hook.carry = 0;
 			player.score += obj->score;	//将分数累加
@@ -478,7 +495,7 @@ void ShushuMove() {
 			switch (p->object.dir)
 			{
 			case 0:	//左
-				p->object.x = p->object.x - 2;
+				p->object.x = p->object.x - 1;
 				{
 					Node* q;	//通过节点q遍历检测碰撞
 					for (q=list.head; q; q = q->next) {
@@ -500,7 +517,7 @@ void ShushuMove() {
 				}
 				break;
 			case 1:	//右
-				p->object.x = p->object.x + 2;
+				p->object.x = p->object.x + 1;
 				{
 					Node* q;
 					for (q = list.head; q; q = q->next) {
@@ -628,9 +645,11 @@ bool CollisionDetect(Object obj1, Object obj2) {
 
 //游戏结束
 void GameOver() {
+	mciSendString(_T("stop bgm"), 0, 0, 0);
 	if (player.score >= player.goal) {	//如果分数达到目标，游戏成功
 		Resize(NULL, i_clear.getwidth(), i_clear.getheight());
 		putimage(0, 0, &i_clear);
+		mciSendString(_T("play high-value"), 0, 0, 0);
 	}
 	else {	//没达到目标，游戏失败
 		Resize(NULL, i_end.getwidth(), i_end.getheight());
@@ -639,9 +658,11 @@ void GameOver() {
 }
 
 void Start() {
-	initgraph(WINDOWS_WIDTH, WINDOWS_HEIGHT);
+	initgraph(WINDOWS_WIDTH, WINDOWS_HEIGHT, EX_SHOWCONSOLE);
 	LoadImages();
 	Initialize();
+	mciSendString(_T("play bgm repeat"), 0, 0, 0);
+	//start2 = clock();
 }
 
 void Update() {
@@ -652,6 +673,10 @@ void Update() {
 		if (timer == 60) {
 			timer = 0;
 			Time--;	//倒计时
+			/*finish2 = clock();
+			double duration = (double)(finish2 - start2) / CLOCKS_PER_SEC;
+			printf("%10.2f seconds\n", duration);
+			start2 = clock();*/
 		}
 		DrawBackground();
 		DrawPlayer();
@@ -700,10 +725,33 @@ int main() {
 	BeginBatchDraw();
 	while (true)
 	{
+		//start = clock();
+		//count++;
 		Update();
 		FlushBatchDraw();
 		Sleep(1000 / 60);
 		cleardevice();
+		/*if (((double)await/CLOCKS_PER_SEC)>=1.0) {
+			printf("FPS: %d\n", count);
+			count = 0;
+			await = (clock_t)0;
+		}
+		finish = clock();
+		await += (finish - start);*/
+
+		WCHAR buffer[48];
+		mciSendString(_T("status dig mode"), buffer, 48, 0);
+		if (wcscmp(buffer, L"stopped") == 0) {
+			mciSendString(_T("close dig"), 0, 0, 0);
+		}
+		mciSendString(_T("status low-value mode"), buffer, 48, 0);
+		if (wcscmp(buffer, L"stopped") == 0) {
+			mciSendString(_T("close low-value"), 0, 0, 0);
+		}
+		mciSendString(_T("status normal-value mode"), buffer, 48, 0);
+		if (wcscmp(buffer, L"stopped") == 0) {
+			mciSendString(_T("close normal-value"), 0, 0, 0);
+		}
 	}
 	EndBatchDraw();
 }
