@@ -24,6 +24,9 @@ IMAGE i_shushu_right[2];
 IMAGE i_mshushu_right[2];
 IMAGE pause_background;
 IMAGE img;
+IMAGE i_start;
+IMAGE i_logo;
+IMAGE i_startbottom;
 
 #pragma endregion
 
@@ -32,7 +35,7 @@ MOUSEMSG m; //设置鼠标信息
 Hook hook;
 Player player;
 List list;	//链表用来储存游戏对象
-int Time = 30;	//游戏倒计时
+int Time = 3;	//游戏倒计时
 int timer = 0;	//计时器
 
 //TCHAR debugText[30];
@@ -140,6 +143,9 @@ void LoadImages() {
 	loadimage(&i_clear, _T(".\\Resources\\pictures\\clear.png"));
 	loadimage(&i_end, _T(".\\Resources\\pictures\\end.jpg"));
 	loadimage(&pause_background, _T(".\\Resources\\pictures\\pause_background.png"));
+	loadimage(&i_start, _T(".\\Resources\\pictures\\start.png"));
+	loadimage(&i_logo, _T(".\\Resources\\pictures\\logo.png"));
+	loadimage(&i_startbottom, _T(".\\Resources\\pictures\\startbottom2.png"));
 	i_hook[1] = i_hook[0];
 	i_mhook[1] = i_mhook[0];
 
@@ -171,6 +177,16 @@ void FlipImage(IMAGE* pDst, IMAGE* pSrc) {
 void PutImageWithMask(int PosX, int PosY, IMAGE* pImg, IMAGE* pImgMask) {
 	putimage(PosX, PosY, pImgMask, NOTSRCERASE);
 	putimage(PosX, PosY, pImg, SRCINVERT);
+}
+
+//打印透明背景png图
+void TransparentImage(IMAGE* dstimg, int x, int y, IMAGE* srcimg) {
+	HDC dstDC = GetImageHDC(dstimg);
+	HDC srcDC = GetImageHDC(srcimg);
+	int w = srcimg->getwidth();
+	int h = srcimg->getheight();
+	BLENDFUNCTION bf = { AC_SRC_OVER,0,255,AC_SRC_ALPHA };
+	AlphaBlend(dstDC, x, y, w, h, srcDC, 0, 0, w, h, bf);
 }
 
 //获取键盘事件
@@ -208,6 +224,13 @@ void MouseEvent() {
 				exit(0);
 			}
 		}
+		if (gameState == Begin) {
+			if (m.x > 90 && m.x < 236 && m.y>120 && m.y < 207) {	//开始游戏
+				InputBox(player.name, 10, L"请输入玩家名称", L"输入玩家名", L"player");
+				Resize(NULL, WINDOWS_WIDTH, WINDOWS_HEIGHT);
+				gameState = Running;
+			}
+		}
 		break;
 	case WM_RBUTTONDOWN://如果是点击鼠标右键
 		return;
@@ -217,7 +240,7 @@ void MouseEvent() {
 
 //游戏对象初始化
 void Initialize() {
-	gameState = Running;
+	gameState = Begin;
 	m = GetMouseMsg();
 	srand(time(NULL));
 
@@ -343,6 +366,7 @@ void DrawUI() {
 	font.lfQuality = ANTIALIASED_QUALITY;	//字体抗锯齿
 	_tcscpy_s(font.lfFaceName, L"黑体");
 	settextstyle(&font);
+	settextcolor(WHITE);
 	setbkmode(TRANSPARENT);
 
 	TCHAR scoreText[30];
@@ -356,6 +380,10 @@ void DrawUI() {
 	TCHAR timeText[30];
 	_stprintf_s(timeText, _T("时间：%d"), Time);
 	outtextxy(800, 10, timeText);
+
+	TCHAR nameText[30];
+	_stprintf_s(nameText, _T("玩家名称：%s"), player.name);
+	outtextxy(800-(wcslen(player.name)*16), 50, nameText);
 }
 
 
@@ -365,8 +393,8 @@ void DrawObject() {
 	for (p = list.head; p; p = p->next) {
 		PutImageWithMask(p->object.x, p->object.y, p->object.image, p->object.m_image);
 		//debug
-		setlinecolor(GREEN);
-		rectangle(p->object.x, p->object.y, p->object.x + p->object.image->getwidth(),p->object.y+ p->object.image->getheight());
+		/*setlinecolor(GREEN);
+		rectangle(p->object.x, p->object.y, p->object.x + p->object.image->getwidth(),p->object.y+ p->object.image->getheight());*/
 	}
 }
 
@@ -407,7 +435,7 @@ void DrawHook() {
 
 	}
 	//debug
-	rectangle(hook.endx - hook.dx, hook.endy-hook.dy, hook.endx -hook.dx+ i_hook[1].getwidth(), hook.endy - hook.dy + i_hook[1].getheight());
+	//rectangle(hook.endx - hook.dx, hook.endy-hook.dy, hook.endx -hook.dx+ i_hook[1].getwidth(), hook.endy - hook.dy + i_hook[1].getheight());
 }
 
 //钩子旋转
@@ -651,21 +679,39 @@ bool CollisionDetect(Object obj1, Object obj2) {
 
 //游戏结束
 void GameOver() {
+	static int isopen = 1;
+	FILE* fp = NULL;
+	errno_t err;
+	if (isopen == 1) {
+		err=fopen_s(&fp, "test.txt", "a+, ccs=utf-8");
+	}
+	wchar_t text[30];
+
 	mciSendString(_T("stop bgm"), 0, 0, 0);
 	if (player.score >= player.goal) {	//如果分数达到目标，游戏成功
 		Resize(NULL, i_clear.getwidth(), i_clear.getheight());
 		putimage(0, 0, &i_clear);
+		TransparentImage(NULL, 50, 20, &i_logo);
 		mciSendString(_T("play high-value"), 0, 0, 0);
+		swprintf_s(text, L"玩家：%-10s游戏成功，分数：%d\n", player.name,player.score);
 	}
 	else {	//没达到目标，游戏失败
 		Resize(NULL, i_end.getwidth(), i_end.getheight());
 		putimage(0, 0, &i_end);
+		swprintf_s(text, L"玩家：%-10s游戏失败，分数：%d\n", player.name, player.score);
 	}
+	if (isopen == 1&&err==0) {
+		fwprintf(fp, L"%s", text);
+		fclose(fp);
+		isopen = 0;
+	}
+
 }
 
 // Start 在程序开始运行时被调用
 void Start() {
-	initgraph(WINDOWS_WIDTH, WINDOWS_HEIGHT);
+	HWND hWnd = initgraph(WINDOWS_WIDTH, WINDOWS_HEIGHT);
+	SetWindowText(hWnd, L"GoldenMiner");
 	LoadImages();
 	Initialize();
 	mciSendString(_T("play bgm repeat"), 0, 0, 0);
@@ -676,6 +722,30 @@ void Start() {
 void Update() {
 	switch (gameState)
 	{
+	case Begin:
+		Resize(NULL, i_start.getwidth(), i_start.getheight());
+		putimage(0, 0, &i_start);
+		TransparentImage(NULL, 20, 20, &i_logo);
+		putimage(90, 120, &i_startbottom);
+		#pragma region	text
+		LOGFONT font;
+		gettextstyle(&font);
+		font.lfHeight = 32;	//指定字体高度48
+		font.lfQuality = ANTIALIASED_QUALITY;	//字体抗锯齿
+		_tcscpy_s(font.lfFaceName, L"黑体");
+		settextstyle(&font);
+		settextcolor(YELLOW);
+		setbkmode(TRANSPARENT);
+		TCHAR goalText[30];
+		_stprintf_s(goalText, _T("目标钱数：$%d"), player.goal);
+		outtextxy(120, 400, goalText);
+		#pragma endregion	
+		if (MouseHit()) {
+			m = GetMouseMsg();
+			MouseEvent();
+		}
+		break;
+
 	case Running:
 		timer++;	//计时器+1
 		if (timer == 60) {
@@ -763,31 +833,3 @@ int main() {
 	}
 	EndBatchDraw();
 }
-
-
-/*
-//创建两个HDC数据结构，前者用作获取当前窗口的绘图设备，后者用作获取内存的绘图设备
-	HDC current_hdc = NULL, buffer_hdc = NULL;
-	//获取当前窗口DC
-	current_hdc = GetDC(GetHWnd());
-	//获取内存DC
-	buffer_hdc = CreateCompatibleDC(NULL);
-	//创建与指定的设备环境相关的设备兼容的位图
-	HBITMAP bmp = CreateCompatibleBitmap(current_hdc, WINDOWS_WIDTH, WINDOWS_HEIGHT);
-	//用bmp替换内存DC中的位图
-	SelectObject(buffer_hdc, bmp);
-
-	//这个HDC结构 用作读取磁盘中的图片
-	HDC srcDC = NULL;
-	//创建两个IMAGE对象，前者存前景（人物），后者存（背景）
-	IMAGE fore = NULL, back = NULL;
-
-	loadimage(&back, _T("E:\\PG files\\pictures\\level-background-0.jpg"));
-	srcDC = GetImageHDC(&back);
-
-	//将背景绘入内存DC
-	TransparentBlt(buffer_hdc, 0, 0, WINDOWS_WIDTH, WINDOWS_HEIGHT, srcDC, 0, 0, WINDOWS_WIDTH, WINDOWS_HEIGHT, 0x000000);
-
-	//将内存DC中的图像按以像素为单位，绘入当前绘图窗口
-	BitBlt(current_hdc, 0, 0, WINDOWS_WIDTH, WINDOWS_HEIGHT, buffer_hdc, 0, 0, SRCCOPY);
-*/

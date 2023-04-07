@@ -134,4 +134,27 @@
       <Filter>资源文件</Filter>
     </Image>
   </ItemGroup>
+  <ItemGroup>
+    <Media Include="Resources\sound\bgm.mp3">
+      <Filter>资源文件</Filter>
+    </Media>
+    <Media Include="Resources\sound\cut-scene.mp3">
+      <Filter>资源文件</Filter>
+    </Media>
+    <Media Include="Resources\sound\dig.mp3">
+      <Filter>资源文件</Filter>
+    </Media>
+    <Media Include="Resources\sound\explosive.mp3">
+      <Filter>资源文件</Filter>
+    </Media>
+    <Media Include="Resources\sound\high-value.mp3">
+      <Filter>资源文件</Filter>
+    </Media>
+    <Media Include="Resources\sound\low-value.mp3">
+      <Filter>资源文件</Filter>
+    </Media>
+    <Media Include="Resources\sound\normal-value.mp3">
+      <Filter>资源文件</Filter>
+    </Media>
+  </ItemGroup>
 </Project>

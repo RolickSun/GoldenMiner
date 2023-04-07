@@ -6,7 +6,7 @@
 #include <math.h>
 #include <time.h>
 
-//#pragma comment(lib,"msimg32.lib")
+#pragma comment(lib,"msimg32.lib")
 #pragma comment(lib,"Winmm.lib")
 
 #define WINDOWS_WIDTH 960
@@ -18,6 +18,7 @@
 
 enum GameState
 {
+	Begin,
 	Running,
 	Pause,
 	Finished,
@@ -48,6 +49,7 @@ typedef struct
 	int goal;	//目标
 	int timer;	//动画计时器
 	int index;	//动画图片索引
+	wchar_t name[10];
 } Player;
 
 typedef struct
@@ -79,6 +81,7 @@ Object* Find(List* pList, int index);
 void LoadImages();
 void FlipImage(IMAGE* pDst, IMAGE* pSrc);
 void PutImageWithMask(int PosX, int PosY, IMAGE* pImg, IMAGE* pImgMask);
+void TransparentImage(IMAGE* dstimg, int x, int y, IMAGE* srcimg);
 void GetKeyboard();
 void MouseEvent();
 void Initialize();

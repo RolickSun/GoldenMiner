@@ -170,6 +170,15 @@
     <Image Include="Resources\pictures\stone.png" />
     <Image Include="Resources\pictures\stone_mask.png" />
   </ItemGroup>
+  <ItemGroup>
+    <Media Include="Resources\sound\bgm.mp3" />
+    <Media Include="Resources\sound\cut-scene.mp3" />
+    <Media Include="Resources\sound\dig.mp3" />
+    <Media Include="Resources\sound\explosive.mp3" />
+    <Media Include="Resources\sound\high-value.mp3" />
+    <Media Include="Resources\sound\low-value.mp3" />
+    <Media Include="Resources\sound\normal-value.mp3" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>
