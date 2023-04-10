@@ -35,7 +35,7 @@ MOUSEMSG m; //设置鼠标信息
 Hook hook;
 Player player;
 List list;	//链表用来储存游戏对象
-int Time = 3;	//游戏倒计时
+int Time = 30;	//游戏倒计时
 int timer = 0;	//计时器
 
 //TCHAR debugText[30];
@@ -727,6 +727,7 @@ void Update() {
 		putimage(0, 0, &i_start);
 		TransparentImage(NULL, 20, 20, &i_logo);
 		putimage(90, 120, &i_startbottom);
+		//打印目标钱数
 		#pragma region	text
 		LOGFONT font;
 		gettextstyle(&font);
