@@ -35,7 +35,7 @@ MOUSEMSG m; //设置鼠标信息
 Hook hook;
 Player player;
 List list;	//链表用来储存游戏对象
-int Time = 3;	//游戏倒计时
+int Time = 30;	//游戏倒计时
 int timer = 0;	//计时器
 
 //TCHAR debugText[30];
