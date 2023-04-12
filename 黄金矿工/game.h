@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <time.h>
+#include "zoom.h"
 
 #pragma comment(lib,"msimg32.lib")
 #pragma comment(lib,"Winmm.lib")
