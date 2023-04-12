@@ -29,7 +29,7 @@ IMAGE i_logo;
 IMAGE i_startbottom;
 
 #pragma endregion
-
+IMAGE img_tmp[BIG_GOLD_AMOUNT + SMALL_GOLD_AMOUNT + STONE_AMOUNT][2];
 GameState gameState;
 MOUSEMSG m; //设置鼠标信息
 Hook hook;
@@ -134,8 +134,8 @@ void LoadImages() {
 	loadimage(&i_msmallgold, _T(".\\Resources\\pictures\\small_gold_mask.bmp"));
 	loadimage(&i_diamond, _T(".\\Resources\\pictures\\diamond.png"));
 	loadimage(&i_mdiamond, _T(".\\Resources\\pictures\\diamond_mask.png"));
-	loadimage(&i_stone, _T(".\\Resources\\pictures\\stone.png"),57,48,true);
-	loadimage(&i_mstone, _T(".\\Resources\\pictures\\stone_mask.png"),57,48,true);
+	loadimage(&i_stone, _T(".\\Resources\\pictures\\stone.png"));
+	loadimage(&i_mstone, _T(".\\Resources\\pictures\\stone_mask.png"));
 	loadimage(&i_shushu_left[0], _T(".\\Resources\\pictures\\shushu.png"));
 	loadimage(&i_shushu_left[1], _T(".\\Resources\\pictures\\shushu_diamond.png"));
 	loadimage(&i_mshushu_left[0], _T(".\\Resources\\pictures\\shushu_mask.png"));
@@ -265,30 +265,38 @@ void Initialize() {
 	list.head = NULL;
 	for (int i = 0; i < BIG_GOLD_AMOUNT; i++) {		// 生成大金块
 		Object bigGold;
-		bigGold.image = &i_biggold;
-		bigGold.m_image = &i_mbiggold;
-		SetObjectPosition(&list, &bigGold);
 		bigGold.size = rand() % 3 + 6;	//范围6-8
 		bigGold.score = 20 * bigGold.size;	//120-160
+		double scale = (bigGold.size - 6) / 10.0 + 1;
+		img_tmp[i][0] = ZoomImage(&i_biggold, scale);
+		img_tmp[i][1] = ZoomImage(&i_mbiggold, scale);
+		bigGold.image = &img_tmp[i][0];
+		bigGold.m_image = &img_tmp[i][1];
+		SetObjectPosition(&list, &bigGold);
 		bigGold.isMove = 0;
 		bigGold.takeAble = 0;
 		Add(&list, bigGold);
 	}
 	for (int i = 0; i < SMALL_GOLD_AMOUNT; i++) {	//生成小金块
 		Object smallGold;
-		smallGold.image = &i_smallgold;
-		smallGold.m_image = &i_msmallgold;
-		SetObjectPosition(&list, &smallGold);
 		smallGold.size = rand() % 3 + 1;	//范围1-3
 		smallGold.score = 20 * smallGold.size;	//20-60
+		double scale = (smallGold.size - 1) / 8.0 + 1;
+		img_tmp[BIG_GOLD_AMOUNT + i][0] = ZoomImage(&i_smallgold, scale);
+		img_tmp[BIG_GOLD_AMOUNT + i][1] = ZoomImage(&i_msmallgold, scale);
+		smallGold.image = &img_tmp[BIG_GOLD_AMOUNT + i][0];
+		smallGold.m_image = &img_tmp[BIG_GOLD_AMOUNT + i][1];
+		SetObjectPosition(&list, &smallGold);
 		smallGold.isMove = 0;
 		smallGold.takeAble = 0;
 		Add(&list, smallGold);
 	}
 	for (int i = 0; i < STONE_AMOUNT; i++) {		//生成石头
 		Object stone;
-		stone.image = &i_stone;
-		stone.m_image = &i_mstone;
+		img_tmp[BIG_GOLD_AMOUNT + SMALL_GOLD_AMOUNT+i][0] = ZoomImage(&i_stone, 1.6);
+		img_tmp[BIG_GOLD_AMOUNT + SMALL_GOLD_AMOUNT+i][1] = ZoomImage(&i_mstone, 1.6);
+		stone.image = &img_tmp[BIG_GOLD_AMOUNT + SMALL_GOLD_AMOUNT + i][0];
+		stone.m_image = &img_tmp[BIG_GOLD_AMOUNT + SMALL_GOLD_AMOUNT + i][1];
 		SetObjectPosition(&list, &stone);
 		stone.size = 9;
 		stone.score = 10;
@@ -393,8 +401,8 @@ void DrawObject() {
 	for (p = list.head; p; p = p->next) {
 		PutImageWithMask(p->object.x, p->object.y, p->object.image, p->object.m_image);
 		//debug
-		/*setlinecolor(GREEN);
-		rectangle(p->object.x, p->object.y, p->object.x + p->object.image->getwidth(),p->object.y+ p->object.image->getheight());*/
+		//setlinecolor(GREEN);
+		//rectangle(p->object.x, p->object.y, p->object.x + p->object.image->getwidth(),p->object.y+ p->object.image->getheight());
 	}
 }
 
@@ -740,7 +748,7 @@ void Update() {
 		TCHAR goalText[30];
 		_stprintf_s(goalText, _T("目标钱数：$%d"), player.goal);
 		outtextxy(120, 400, goalText);
-		#pragma endregion	
+#pragma endregion	
 		if (MouseHit()) {
 			m = GetMouseMsg();
 			MouseEvent();
