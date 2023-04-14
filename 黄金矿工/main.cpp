@@ -1,7 +1,5 @@
 #include "game.h"
 
-#pragma region Images
-
 IMAGE i_back;
 IMAGE i_brick;
 IMAGE i_player[2];
@@ -23,13 +21,12 @@ IMAGE i_mshushu_left[2];
 IMAGE i_shushu_right[2];
 IMAGE i_mshushu_right[2];
 IMAGE pause_background;
-IMAGE img;
 IMAGE i_start;
 IMAGE i_logo;
 IMAGE i_startbottom;
-
-#pragma endregion
+IMAGE img;
 IMAGE img_tmp[BIG_GOLD_AMOUNT + SMALL_GOLD_AMOUNT + STONE_AMOUNT][2];
+
 GameState gameState;
 MOUSEMSG m; //设置鼠标信息
 Hook hook;
@@ -37,12 +34,6 @@ Player player;
 List list;	//链表用来储存游戏对象
 int Time = 30;	//游戏倒计时
 int timer = 0;	//计时器
-
-//TCHAR debugText[30];
-//clock_t start, finish;	//debug
-//clock_t await=clock_t(0);	//debug
-//clock_t start2, finish2;	//debug
-//int count = 0;	//debug
 
 //链表添加
 void Add(List* pList, Object obj) {
@@ -335,9 +326,6 @@ void Initialize() {
 		Add(&list, mouse);
 	}
 
-	//添加音乐文件
-	mciSendString(_T("open .\\Resources\\sound\\bgm.mp3 alias bgm"), 0, 0, 0);
-	mciSendString(_T("open .\\Resources\\sound\\high-value.mp3 alias high-value"), 0, 0, 0);
 }
 
 //绘制图像
@@ -368,12 +356,7 @@ void DrawPlayer() {
 
 //绘制UI
 void DrawUI() {
-	LOGFONT font;
-	gettextstyle(&font);
-	font.lfHeight = 32;	//指定字体高度48
-	font.lfQuality = ANTIALIASED_QUALITY;	//字体抗锯齿
-	_tcscpy_s(font.lfFaceName, L"黑体");
-	settextstyle(&font);
+	settextstyle(32, 0, L"黑体");
 	settextcolor(WHITE);
 	setbkmode(TRANSPARENT);
 
@@ -400,9 +383,6 @@ void DrawObject() {
 	Node* p;
 	for (p = list.head; p; p = p->next) {
 		PutImageWithMask(p->object.x, p->object.y, p->object.image, p->object.m_image);
-		//debug
-		//setlinecolor(GREEN);
-		//rectangle(p->object.x, p->object.y, p->object.x + p->object.image->getwidth(),p->object.y+ p->object.image->getheight());
 	}
 }
 
@@ -442,8 +422,7 @@ void DrawHook() {
 			ThrowHook();
 
 	}
-	//debug
-	//rectangle(hook.endx - hook.dx, hook.endy-hook.dy, hook.endx -hook.dx+ i_hook[1].getwidth(), hook.endy - hook.dy + i_hook[1].getheight());
+
 }
 
 //钩子旋转
@@ -718,12 +697,13 @@ void GameOver() {
 
 // Start 在程序开始运行时被调用
 void Start() {
-	HWND hWnd = initgraph(WINDOWS_WIDTH, WINDOWS_HEIGHT);
-	SetWindowText(hWnd, L"GoldenMiner");
+	initgraph(WINDOWS_WIDTH, WINDOWS_HEIGHT);
 	LoadImages();
 	Initialize();
+	//添加音乐文件
+	mciSendString(_T("open .\\Resources\\sound\\bgm.mp3 alias bgm"), 0, 0, 0);
+	mciSendString(_T("open .\\Resources\\sound\\high-value.mp3 alias high-value"), 0, 0, 0);
 	mciSendString(_T("play bgm repeat"), 0, 0, 0);
-	//start2 = clock();
 }
 
 // Update 在每一帧被调用
@@ -735,20 +715,19 @@ void Update() {
 		putimage(0, 0, &i_start);
 		TransparentImage(NULL, 20, 20, &i_logo);
 		putimage(90, 120, &i_startbottom);
+
 		//打印目标钱数
-		#pragma region	text
+		settextstyle(32, 0, L"黑体");
 		LOGFONT font;
 		gettextstyle(&font);
-		font.lfHeight = 32;	//指定字体高度48
-		font.lfQuality = ANTIALIASED_QUALITY;	//字体抗锯齿
-		_tcscpy_s(font.lfFaceName, L"黑体");
+		font.lfQuality = ANTIALIASED_QUALITY;	//设置输出效果为抗锯齿
 		settextstyle(&font);
 		settextcolor(YELLOW);
 		setbkmode(TRANSPARENT);
 		TCHAR goalText[30];
 		_stprintf_s(goalText, _T("目标钱数：$%d"), player.goal);
 		outtextxy(120, 400, goalText);
-#pragma endregion	
+
 		if (MouseHit()) {
 			m = GetMouseMsg();
 			MouseEvent();
@@ -760,11 +739,6 @@ void Update() {
 		if (timer == 60) {
 			timer = 0;
 			Time--;	//倒计时
-
-			//finish2 = clock();
-			//double duration = (double)(finish2 - start2) / CLOCKS_PER_SEC;
-			//printf("%10.2f seconds\n", duration);
-			//start2 = clock();
 		}
 
 		Draw();	//绘图
@@ -795,7 +769,6 @@ void Update() {
 			m = GetMouseMsg();
 			MouseEvent();
 		}
-		//outtextxy(300, 300, debugText);
 		break;
 
 	case Finished:
@@ -811,19 +784,10 @@ int main() {
 	BeginBatchDraw();
 	while (true)
 	{
-		//start = clock();
-		//count++;
 		Update();
 		FlushBatchDraw();
 		Sleep(1000 / 60);
 		cleardevice();
-		//if (((double)await/CLOCKS_PER_SEC)>=1.0) {
-		//	printf("FPS: %d\n", count);
-		//	count = 0;
-		//	await = (clock_t)0;
-		//}
-		//finish = clock();
-		//await += (finish - start);
 
 		//关闭已播放完的音乐文件
 		WCHAR buffer[48];
