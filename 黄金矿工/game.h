@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <math.h>
 #include <time.h>
-#include "zoom.h"
+#include "image.h"
 
 #pragma comment(lib,"msimg32.lib")
 #pragma comment(lib,"Winmm.lib")
@@ -23,6 +23,13 @@ enum GameState
 	Running,
 	Pause,
 	Finished,
+};
+
+enum Type
+{
+	Mouse,
+	Diamond,
+	Gold,
 };
 
 typedef struct 
@@ -48,9 +55,11 @@ typedef struct
 	int y;
 	int score;	//分数
 	int goal;	//目标
-	int timer;	//动画计时器
-	int index;	//动画图片索引
-	wchar_t name[10];
+	int ani_timer;	//动画计时器
+	int ani_index;	//动画图片索引
+	int getScore;	//显示得分
+	bool isShow;	//是否显示得分
+	wchar_t name[10];	//玩家名称
 } Player;
 
 typedef struct
@@ -62,8 +71,7 @@ typedef struct
 	IMAGE* image;
 	IMAGE* m_image;
 	int dir;	//方向，用于老鼠移动，0-左，1-右
-	int isMove;	//是否移动，用来标记是否是老鼠
-	int takeAble;	//能否被老鼠拿取
+	Type type;	//物品类型
 } Object;
 
 typedef struct _node {
@@ -79,13 +87,15 @@ void Add(List* pList, Object obj);
 void Delete(List* pList, int index);
 void Delete(List* pList, Object* obj);
 Object* Find(List* pList, int index);
-void LoadImages();
-void FlipImage(IMAGE* pDst, IMAGE* pSrc);
-void PutImageWithMask(int PosX, int PosY, IMAGE* pImg, IMAGE* pImgMask);
-void TransparentImage(IMAGE* dstimg, int x, int y, IMAGE* srcimg);
-void GetKeyboard();
+void SetObjectPosition(List* pList, Object* obj);
+bool CollisionDetect(Object obj);
+bool CollisionDetect(int rect1x, int rect1y, int rect1width, int rect1height, Object obj);
+bool CollisionDetect(Object obj1, Object obj2);
+void KeyboardEvent();
 void MouseEvent();
+
 void Initialize();
+void LoadImages();
 void Draw();
 void DrawPlayer();
 void DrawUI();
@@ -96,8 +106,5 @@ void ThrowHook();
 void HookBack(int speed);
 void HookBack(int speed, int index);
 void ShushuMove();
-void SetObjectPosition(List* pList, Object* obj);
-bool CollisionDetect(Object obj);
-bool CollisionDetect(int rect1x, int rect1y, int rect1width, int rect1height, Object obj);
-bool CollisionDetect(Object obj1, Object obj2);
+void GameBegin();
 void GameOver();
