@@ -23,12 +23,12 @@ IMAGE i_mshushu_right[2];
 IMAGE pause_background;
 IMAGE i_start;
 IMAGE i_logo;
-IMAGE i_startbottom;
+IMAGE i_startbottom[3];
 IMAGE img;
 IMAGE img_tmp[BIG_GOLD_AMOUNT + SMALL_GOLD_AMOUNT + STONE_AMOUNT][2];
 
 GameState gameState;
-MOUSEMSG m; //设置鼠标信息
+ExMessage m;	// 定义消息变量
 Hook hook;
 Player player;
 List list;	//链表用来储存游戏对象
@@ -124,10 +124,15 @@ void KeyboardEvent() {
 
 //获取鼠标事件
 void MouseEvent() {
-	switch (m.uMsg)//对事件进行分类
+	switch (m.message)//对事件进行分类
 	{
 	case WM_MOUSEMOVE://如果是鼠标移动事件
-		//_stprintf_s(debugText, _T("x:%d y:%d"), m.x, m.y);
+		if (gameState == Begin) {
+			if (m.x > 90 && m.x < 236 && m.y>120 && m.y < 207)
+				i_startbottom[0]=i_startbottom[2];
+			else
+				i_startbottom[0] = i_startbottom[1];
+		}
 		break;
 	case WM_LBUTTONDOWN://如果是点击鼠标左键
 		if (gameState == Running) {
@@ -185,9 +190,11 @@ void LoadImages() {
 	loadimage(&pause_background, _T(".\\Resources\\pictures\\pause_background.png"));
 	loadimage(&i_start, _T(".\\Resources\\pictures\\start.png"));
 	loadimage(&i_logo, _T(".\\Resources\\pictures\\logo.png"));
-	loadimage(&i_startbottom, _T(".\\Resources\\pictures\\startbottom2.png"));
+	loadimage(&i_startbottom[1], _T(".\\Resources\\pictures\\startbottom1.png"));
+	loadimage(&i_startbottom[2], _T(".\\Resources\\pictures\\startbottom2.png"));
 	i_hook[1] = i_hook[0];
 	i_mhook[1] = i_mhook[0];
+	i_startbottom[0]= i_startbottom[1];
 
 	for (int i = 0; i < 2; i++) {
 		i_shushu_right[i] = i_shushu_left[i];
@@ -200,7 +207,7 @@ void LoadImages() {
 //游戏对象初始化
 void Initialize() {
 	gameState = Begin;
-	m = GetMouseMsg();
+	m = getmessage(EX_MOUSE);
 	srand(time(NULL));
 
 	//初始化player
@@ -653,7 +660,7 @@ void GameBegin() {
 	Resize(NULL, i_start.getwidth(), i_start.getheight());
 	putimage(0, 0, &i_start);
 	TransparentImage(NULL, 20, 20, &i_logo);
-	putimage(90, 120, &i_startbottom);
+	putimage(90, 120, &i_startbottom[0]);
 
 	//打印目标钱数
 	settextstyle(32, 0, L"黑体");
@@ -712,14 +719,12 @@ void Start() {
 
 // Update 在每一帧被调用
 void Update() {
+	peekmessage(&m, EX_MOUSE,true);//获取鼠标事件
 	switch (gameState)	//判断游戏状态
 	{
 	case Begin:
 		GameBegin();
-		if (MouseHit()) {
-			m = GetMouseMsg();
-			MouseEvent();
-		}
+		MouseEvent();
 		break;
 
 	case Running:
@@ -735,10 +740,7 @@ void Update() {
 		ShushuMove();	//老鼠移动
 
 		KeyboardEvent();	//获取键盘事件
-		if (MouseHit()) {
-			m = GetMouseMsg();
-			MouseEvent();	//获取鼠标事件
-		}
+		MouseEvent();
 
 		//检测是否清除了全部金块
 		if (list.head == NULL) {
@@ -753,10 +755,7 @@ void Update() {
 	case Pause:
 		putimage(0, 0, &img);
 		putimage(50, 50, &pause_background);
-		if (MouseHit()) {
-			m = GetMouseMsg();
-			MouseEvent();
-		}
+		MouseEvent();
 		break;
 
 	case Finished:
