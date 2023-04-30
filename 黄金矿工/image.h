@@ -2,6 +2,45 @@
 #include <conio.h>
 #pragma once
 
+//该头文件包含图像相关功能函数
+
+
+//左右翻转图片
+void FlipImage(IMAGE* pDst, IMAGE* pSrc) {
+	DWORD* pdSrc = GetImageBuffer(pSrc);
+	DWORD* pdDst = GetImageBuffer(pDst);
+	int width = pSrc->getwidth();
+	int height = pSrc->getheight();
+	for (int y = 0; y < height; y++) {
+		for (int x = 0; x < width; x++) {
+			int r = GetRValue(pdSrc[x + y * width]);
+			int g = GetGValue(pdSrc[x + y * width]);
+			int b = GetBValue(pdSrc[x + y * width]);
+			pdDst[width - x + y * width] = RGB(r, g, b);
+		}
+	}
+}
+
+
+//利用蒙版图层打印透明背景图片
+void PutImageWithMask(int PosX, int PosY, IMAGE* pImg, IMAGE* pImgMask) {
+	putimage(PosX, PosY, pImgMask, NOTSRCERASE);
+	putimage(PosX, PosY, pImg, SRCINVERT);
+}
+
+
+//打印透明背景png图
+void TransparentImage(IMAGE* dstimg, int x, int y, IMAGE* srcimg) {
+	HDC dstDC = GetImageHDC(dstimg);
+	HDC srcDC = GetImageHDC(srcimg);
+	int w = srcimg->getwidth();
+	int h = srcimg->getheight();
+	BLENDFUNCTION bf = { AC_SRC_OVER,0,255,AC_SRC_ALPHA };
+	AlphaBlend(dstDC, x, y, w, h, srcDC, 0, 0, w, h, bf);
+}
+
+
+//缩放图片
 IMAGE ZoomImage(IMAGE* Q, double ZoomRate, bool HighQuality = false, double ZoomRate2 = 0)
 {
 	//不填写第二缩放参数则默认和第一相等

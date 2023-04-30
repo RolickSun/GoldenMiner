@@ -18,7 +18,7 @@
     <ClInclude Include="game.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="zoom.h">
+    <ClInclude Include="image.h">
       <Filter>头文件</Filter>
     </ClInclude>
   </ItemGroup>

@@ -128,7 +128,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="game.h" />
-    <ClInclude Include="zoom.h" />
+    <ClInclude Include="image.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
