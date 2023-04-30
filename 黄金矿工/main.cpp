@@ -25,7 +25,7 @@ IMAGE i_start;
 IMAGE i_logo;
 IMAGE i_startbottom[3];
 IMAGE img;
-IMAGE img_tmp[BIG_GOLD_AMOUNT + SMALL_GOLD_AMOUNT + STONE_AMOUNT][2];
+IMAGE img_tmp[BIG_GOLD_AMOUNT + SMALL_GOLD_AMOUNT + STONE_AMOUNT+1][2];
 
 GameState gameState;
 ExMessage m;	// 定义消息变量
@@ -155,6 +155,10 @@ void MouseEvent() {
 				Resize(NULL, WINDOWS_WIDTH, WINDOWS_HEIGHT);
 				gameState = Running;
 			}
+			if (m.x > 115 && m.x < 255 && m.y>475 && m.y < 520) {
+				closegraph();
+				exit(0);
+			}
 		}
 		break;
 	case WM_RBUTTONDOWN://如果是点击鼠标右键
@@ -207,7 +211,6 @@ void LoadImages() {
 //游戏对象初始化
 void Initialize() {
 	gameState = Begin;
-	m = getmessage(EX_MOUSE);
 	srand(time(NULL));
 
 	//初始化player
@@ -673,6 +676,12 @@ void GameBegin() {
 	TCHAR goalText[30];
 	_stprintf_s(goalText, _T("目标钱数：$%d"), player.goal);
 	outtextxy(120, 400, goalText);
+
+	setfillcolor(0x00D7FF);
+	setlinecolor(WHITE);
+	fillroundrect(115, 475, 255, 520, 2, 2);
+	settextcolor(0x3F85CD);
+	outtextxy(120, 480, _T("退出游戏"));
 }
 
 //游戏结束
@@ -684,11 +693,15 @@ void GameOver() {
 		err=fopen_s(&fp, "charts.txt", "a+, ccs=utf-8");
 	}
 	wchar_t text[30];
+	//绘制分数
+	TCHAR scoreText[30];
+	_stprintf_s(scoreText, _T("您的分数为$%d"), player.score);
 
 	mciSendString(_T("stop bgm"), 0, 0, 0);
 	if (player.score >= player.goal) {	//如果分数达到目标，游戏成功
 		Resize(NULL, i_clear.getwidth(), i_clear.getheight());
 		putimage(0, 0, &i_clear);
+		outtextxy(300, 280, scoreText);
 		TransparentImage(NULL, 50, 20, &i_logo);
 		mciSendString(_T("play high-value"), 0, 0, 0);
 		swprintf_s(text, L"玩家：%-10s游戏成功，分数：%d\n", player.name,player.score);
@@ -696,6 +709,8 @@ void GameOver() {
 	else {	//没达到目标，游戏失败
 		Resize(NULL, i_end.getwidth(), i_end.getheight());
 		putimage(0, 0, &i_end);
+		outtextxy(300, 200, _T("您失败了"));
+		outtextxy(300, 280, scoreText);
 		swprintf_s(text, L"玩家：%-10s游戏失败，分数：%d\n", player.name, player.score);
 	}
 	if (isopen == 1&&err==0) {
